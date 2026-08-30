@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title description">
+  <title id="title">Offset Aperture brand mark</title>
+  <desc id="description">A continuous open system path with one deliberately displaced module.</desc>
+  <path d="M80 32H32V224H224V80H96V176H176V128" fill="none" stroke="#181b1a" stroke-width="17" stroke-linecap="square" stroke-linejoin="miter" />
+  <rect x="202" y="20" width="28" height="28" fill="#c64a36" />
+</svg>

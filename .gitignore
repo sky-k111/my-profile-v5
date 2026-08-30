@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.playwright-cli/
+.superpowers/
+.worktrees/
+output/
+tmp/imagegen/
+*.png
+!portrait.png
+!racing-suit.png
+!racing-suit-cutout.png
+!public/racing-suit-official-v2.png
+!public/ai-brands/*.png
+*.log

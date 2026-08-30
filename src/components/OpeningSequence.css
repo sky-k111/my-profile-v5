@@ -1,0 +1,205 @@
+html[data-portfolio-opening='active'],
+html[data-portfolio-opening='active'] body {
+  overflow: hidden;
+}
+
+.opening-sequence {
+  --opening-duration: 6000ms;
+  --opening-handoff: 0;
+  position: fixed;
+  z-index: 200;
+  inset: 0;
+  overflow: hidden;
+  color: #171918;
+  background: #fff;
+  pointer-events: none;
+  isolation: isolate;
+  animation: opening-sequence-exit var(--opening-duration) linear both;
+}
+
+.opening-sequence__construct {
+  --opening-arm-width: 104px;
+  --opening-arm-height: 104px;
+  --opening-slash-reveal: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 104px;
+  height: 104px;
+  transform: translate(-50%, -50%);
+  will-change: width, height;
+}
+
+.opening-sequence__corner {
+  position: absolute;
+  z-index: 6;
+  width: var(--opening-arm-width);
+  height: var(--opening-arm-height);
+}
+
+.opening-sequence__corner--top-left {
+  top: 0;
+  left: 0;
+}
+
+.opening-sequence__corner--bottom-right {
+  right: 0;
+  bottom: 0;
+}
+
+.opening-sequence__corner-horizontal,
+.opening-sequence__corner-vertical {
+  position: absolute;
+  display: block;
+  background: #171918;
+}
+
+.opening-sequence__corner-horizontal {
+  width: 100%;
+  height: 2px;
+}
+
+.opening-sequence__corner-vertical {
+  width: 2px;
+  height: 100%;
+}
+
+.opening-sequence__corner--top-left .opening-sequence__corner-horizontal,
+.opening-sequence__corner--top-left .opening-sequence__corner-vertical {
+  top: 0;
+  left: 0;
+}
+
+.opening-sequence__corner--bottom-right .opening-sequence__corner-horizontal,
+.opening-sequence__corner--bottom-right .opening-sequence__corner-vertical {
+  right: 0;
+  bottom: 0;
+}
+
+.opening-sequence__media-frame {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  width: 76px;
+  height: 76px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translate3d(-50%, -50%, 0);
+  will-change: width, height, opacity;
+}
+
+.opening-sequence__media-frame::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background:
+    linear-gradient(180deg, rgba(6, 13, 11, .04), transparent 36%),
+    linear-gradient(0deg, rgba(3, 9, 7, .14), transparent 40%);
+}
+
+.opening-sequence__media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 53%;
+  transform: scale(1.14);
+  transform-origin: center 56%;
+  filter: saturate(.82) contrast(1.03);
+  user-select: none;
+  -webkit-user-drag: none;
+  will-change: transform;
+}
+
+.opening-sequence__name {
+  position: absolute;
+  z-index: 6;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: baseline;
+  gap: .48em;
+  width: max-content;
+  color: #171918;
+  font-family: 'Noto Sans SC Variable', Inter, sans-serif;
+  font-size: clamp(3.2rem, 9.2vw, 9rem);
+  font-weight: 790;
+  font-variation-settings: 'wght' 790;
+  letter-spacing: -.075em;
+  line-height: 1.05;
+  opacity: 0;
+  clip-path: inset(0 50%);
+  transform: translate3d(-50%, -50%, 0) scale(.96);
+  white-space: nowrap;
+  will-change: clip-path, opacity, transform;
+}
+
+.opening-sequence__slash {
+  position: absolute;
+  z-index: 7;
+  top: 50%;
+  left: 50%;
+  width: clamp(3px, .32vw, 5px);
+  height: 1em;
+  background: #c64a36;
+  border-radius: 1px;
+  font-size: clamp(3.2rem, 9.2vw, 9rem);
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(18deg) scaleY(var(--opening-slash-reveal));
+  transform-origin: center;
+  will-change: transform;
+}
+
+.opening-sequence__edition {
+  position: absolute;
+  right: clamp(20px, 3.2vw, 54px);
+  bottom: clamp(20px, 3.2vw, 46px);
+  color: rgba(23, 25, 24, .5);
+  font-family: 'Noto Sans SC Variable', Inter, sans-serif;
+  font-size: clamp(.56rem, .65vw, .7rem);
+  font-weight: 650;
+  letter-spacing: .18em;
+  line-height: 1;
+}
+
+@keyframes opening-sequence-exit {
+  0%, 93% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (max-width: 700px) {
+  .opening-sequence__construct {
+    width: 78px;
+    height: 78px;
+  }
+
+  .opening-sequence__construct {
+    --opening-arm-width: 78px;
+    --opening-arm-height: 78px;
+  }
+
+  .opening-sequence__corner-horizontal {
+    height: 2px;
+  }
+
+  .opening-sequence__corner-vertical {
+    width: 2px;
+  }
+
+  .opening-sequence__name {
+    gap: .42em;
+    font-size: clamp(2.45rem, 13.8vw, 4.5rem);
+  }
+
+  .opening-sequence__slash {
+    font-size: clamp(2.45rem, 13.8vw, 4.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opening-sequence {
+    display: none;
+    animation: none;
+  }
+}

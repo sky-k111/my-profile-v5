@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title description">
+  <title id="title">Split Bracket brand glyph</title>
+  <desc id="description">Two opposing code-like brackets crossed by an offset directional stroke.</desc>
+  <style>
+    .ink { stroke: #181b1a; }
+    .accent { stroke: #c64a36; }
+  </style>
+  <g fill="none" stroke-width="18" stroke-linecap="square" stroke-linejoin="miter">
+    <path class="ink" d="M94 34H34V222H94" />
+    <path class="ink" d="M166 22H226V210H166" />
+    <path class="accent" d="M108 188L150 70" />
+  </g>
+</svg>

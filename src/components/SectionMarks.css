@@ -1,0 +1,55 @@
+.section-marks {
+  position: absolute;
+  z-index: 12;
+  top: var(--section-mark-top, clamp(16px, 1.6vw, 28px));
+  right: var(--section-mark-right, clamp(16px, 1.6vw, 28px));
+  bottom: var(--section-mark-bottom, clamp(16px, 1.6vw, 28px));
+  left: var(--section-mark-left, clamp(16px, 1.6vw, 28px));
+  color: var(--section-mark-color, currentColor);
+  pointer-events: none;
+}
+
+.section-marks__corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  opacity: .2;
+}
+
+.section-marks__corner::after {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: currentColor;
+  content: '';
+}
+
+.section-marks__corner--top-left {
+  top: 0;
+  left: 0;
+  border-top: 1px solid currentColor;
+  border-left: 1px solid currentColor;
+}
+
+.section-marks__corner--top-left::after {
+  top: -2px;
+  left: -2px;
+}
+
+.section-marks__corner--bottom-right {
+  right: 0;
+  bottom: 0;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+}
+
+.section-marks__corner--bottom-right::after {
+  right: -2px;
+  bottom: -2px;
+}
+
+@media (max-width: 700px) {
+  .section-marks {
+    display: none;
+  }
+}

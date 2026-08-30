@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title description">
+  <title id="title">Open Module brand glyph</title>
+  <desc id="description">A continuous system path folding inward, with one detached module.</desc>
+  <style>
+    .ink { stroke: #181b1a; }
+    .accent { fill: #c64a36; }
+  </style>
+  <path class="ink" d="M72 38H38V218H218V72H104V170H170V118" fill="none" stroke-width="18" stroke-linecap="square" stroke-linejoin="miter" />
+  <rect class="accent" x="194" y="22" width="28" height="28" />
+</svg>

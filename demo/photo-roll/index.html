@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Photo Roll Demo</title>
+  </head>
+  <body>
+    <main class="photo-roll-demo" aria-label="照片由下向上卷入的动效演示">
+      <figure class="photo-roll-demo__photo">
+        <img class="photo-roll-demo__flat" src="/images/about/track.jpg" alt="跑道上的人物照片" />
+        <div class="photo-roll-demo__slices" aria-hidden="true">
+          <span class="photo-roll-demo__slice" style="--slice: 0"></span>
+          <span class="photo-roll-demo__slice" style="--slice: 1"></span>
+          <span class="photo-roll-demo__slice" style="--slice: 2"></span>
+          <span class="photo-roll-demo__slice" style="--slice: 3"></span>
+          <span class="photo-roll-demo__slice" style="--slice: 4"></span>
+          <span class="photo-roll-demo__slice" style="--slice: 5"></span>
+          <span class="photo-roll-demo__slice" style="--slice: 6"></span>
+          <span class="photo-roll-demo__slice" style="--slice: 7"></span>
+        </div>
+        <span class="photo-roll-demo__edge" aria-hidden="true"></span>
+      </figure>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

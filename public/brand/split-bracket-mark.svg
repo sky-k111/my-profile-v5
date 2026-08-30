@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title description">
+  <title id="title">Corner Slash brand mark</title>
+  <desc id="description">Opposing upper-left and lower-right corners with a compact diagonal slash.</desc>
+  <g fill="none" stroke="#181b1a" stroke-width="17" stroke-linecap="square" stroke-linejoin="miter">
+    <path d="M94 36H34V96" />
+    <path d="M162 220H222V160" />
+  </g>
+  <path d="M150 102L106 152" fill="none" stroke="#c64a36" stroke-width="19" stroke-linecap="square" />
+</svg>

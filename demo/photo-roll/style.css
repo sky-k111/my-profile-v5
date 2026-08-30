@@ -1,0 +1,88 @@
+:root {
+  color: #1e1b18;
+  background: #fdfdfb;
+  font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+.photo-roll-demo {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  overflow: hidden;
+  background: #fdfdfb;
+  opacity: 0;
+  perspective: 1400px;
+}
+
+.photo-roll-demo__photo {
+  position: relative;
+  width: min(36vw, 420px);
+  aspect-ratio: 2 / 3;
+  margin: 0;
+  box-shadow: 0 22px 34px rgba(37, 31, 25, 0.16);
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
+
+.photo-roll-demo__flat {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+}
+
+.photo-roll-demo__slices {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: repeat(8, 1fr);
+  transform-style: preserve-3d;
+}
+
+.photo-roll-demo__slice {
+  background-image: url('/images/about/track.jpg');
+  background-position: 0 calc(var(--slice) * 100% / 7);
+  background-repeat: no-repeat;
+  background-size: 100% 800%;
+  clip-path: polygon(2% 0, 100% 0, 98% 100%, 0 100%);
+  box-shadow: 0 8px 12px rgba(31, 24, 19, 0.2);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.photo-roll-demo__edge {
+  position: absolute;
+  right: 2%;
+  bottom: -7px;
+  left: 2%;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(25, 19, 15, 0.38));
+  box-shadow: 0 4px 7px rgba(23, 18, 14, 0.26);
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+@media (max-width: 700px) {
+  .photo-roll-demo__photo {
+    width: min(72vw, 420px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo-roll-demo {
+    opacity: 1;
+  }
+}

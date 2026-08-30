@@ -1,0 +1,22 @@
+.brand-mark {
+  --brand-progress: 1;
+  display: block;
+  overflow: visible;
+  color: currentColor;
+}
+
+.brand-mark__path,
+.brand-mark__slash {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 17;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - var(--brand-progress));
+}
+
+.brand-mark__slash {
+  stroke: var(--brand-accent, #c64a36);
+  stroke-width: 19;
+}

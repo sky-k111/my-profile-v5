@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title description">
+  <title id="title">Offset Corners brand glyph</title>
+  <desc id="description">Four framing corners with the upper-right corner deliberately shifted.</desc>
+  <style>
+    .ink { stroke: #181b1a; }
+    .accent { stroke: #c64a36; }
+  </style>
+  <g fill="none" stroke-width="18" stroke-linecap="square" stroke-linejoin="miter">
+    <path class="ink" d="M82 32H32V82" />
+    <path class="accent" d="M174 20H230V76" />
+    <path class="ink" d="M230 174V230H174" />
+    <path class="ink" d="M82 230H32V174" />
+  </g>
+</svg>

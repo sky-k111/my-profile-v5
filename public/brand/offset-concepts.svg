@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-labelledby="board-title board-description">
+  <title id="board-title">OFFSET brand glyph study</title>
+  <desc id="board-description">Three abstract identity directions tested at display, favicon, reversed and motion-sequence sizes.</desc>
+  <defs>
+    <symbol id="offset-corners" viewBox="0 0 256 256">
+      <g fill="none" stroke-width="18" stroke-linecap="square" stroke-linejoin="miter">
+        <path stroke="currentColor" d="M82 32H32V82" />
+        <path class="accent-stroke" d="M174 20H230V76" />
+        <path stroke="currentColor" d="M230 174V230H174" />
+        <path stroke="currentColor" d="M82 230H32V174" />
+      </g>
+    </symbol>
+    <symbol id="split-bracket" viewBox="0 0 256 256">
+      <g fill="none" stroke-width="18" stroke-linecap="square" stroke-linejoin="miter">
+        <path stroke="currentColor" d="M94 34H34V222H94" />
+        <path stroke="currentColor" d="M166 22H226V210H166" />
+        <path class="accent-stroke" d="M108 188L150 70" />
+      </g>
+    </symbol>
+    <symbol id="open-module" viewBox="0 0 256 256">
+      <path d="M72 38H38V218H218V72H104V170H170V118" fill="none" stroke="currentColor" stroke-width="18" stroke-linecap="square" stroke-linejoin="miter" />
+      <rect class="accent-fill" x="194" y="22" width="28" height="28" />
+    </symbol>
+    <pattern id="paper-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#181b1a" stroke-opacity=".035" stroke-width="1" />
+    </pattern>
+  </defs>
+  <style>
+    .accent-stroke { stroke: #c64a36; }
+    .accent-fill { fill: #c64a36; }
+    .label { font: 620 14px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .12em; fill: #747773; }
+    .name { font: 650 32px/1.05 Arial, Helvetica, sans-serif; letter-spacing: -.035em; fill: #181b1a; }
+    .body { font: 430 16px/1.45 Arial, Helvetica, sans-serif; fill: #565b57; }
+    .micro { font: 600 11px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .08em; fill: #747773; }
+  </style>
+
+  <rect width="1600" height="1000" fill="#f2efe7" />
+  <rect width="1600" height="1000" fill="url(#paper-grid)" />
+  <path d="M56 124H1544M56 760H1544M544 124V944M1056 124V944" fill="none" stroke="#181b1a" stroke-opacity=".17" />
+
+  <text x="56" y="66" class="label">OFFSET / BRAND GLYPH STUDY 01</text>
+  <text x="1544" y="66" class="label" text-anchor="end">SYSTEM × DEVIATION / 2026</text>
+  <text x="56" y="102" class="body">Three identity systems built to survive motion, a 24px favicon and monochrome reproduction.</text>
+
+  <!-- Concept 01 -->
+  <g color="#181b1a">
+    <use href="#offset-corners" x="155" y="176" width="290" height="290" />
+    <text x="82" y="530" class="label">01 / RECOMMENDED</text>
+    <text x="82" y="576" class="name">OFFSET CORNERS</text>
+    <text x="82" y="614" class="body">A framing system with one deliberate error.</text>
+    <text x="82" y="640" class="body">Calm in print; expansive and cinematic in motion.</text>
+  </g>
+
+  <!-- Concept 02 -->
+  <g color="#181b1a">
+    <use href="#split-bracket" x="667" y="176" width="290" height="290" />
+    <text x="594" y="530" class="label">02 / TYPOGRAPHIC</text>
+    <text x="594" y="576" class="name">SPLIT BRACKET</text>
+    <text x="594" y="614" class="body">Code brackets interrupted by a directional cut.</text>
+    <text x="594" y="640" class="body">Stronger as a glyph; sharper and more technical.</text>
+  </g>
+
+  <!-- Concept 03 -->
+  <g color="#181b1a">
+    <use href="#open-module" x="1179" y="176" width="290" height="290" />
+    <text x="1106" y="530" class="label">03 / SYSTEMIC</text>
+    <text x="1106" y="576" class="name">OPEN MODULE</text>
+    <text x="1106" y="614" class="body">One continuous route folding into an open system.</text>
+    <text x="1106" y="640" class="body">Most ownable, but denser at very small sizes.</text>
+  </g>
+
+  <!-- Scale and reverse tests -->
+  <g transform="translate(82 798)" color="#181b1a">
+    <text x="0" y="0" class="micro">24PX / REVERSE / MOTION DNA</text>
+    <use href="#offset-corners" x="0" y="34" width="32" height="32" />
+    <rect x="74" y="24" width="112" height="112" fill="#181b1a" />
+    <g color="#f2efe7"><use href="#offset-corners" x="92" y="42" width="76" height="76" /></g>
+    <g color="#181b1a" opacity=".34"><use href="#offset-corners" x="238" y="60" width="40" height="40" /></g>
+    <g color="#181b1a" opacity=".64"><use href="#offset-corners" x="302" y="46" width="68" height="68" /></g>
+    <use href="#offset-corners" x="398" y="30" width="100" height="100" />
+  </g>
+
+  <g transform="translate(594 798)" color="#181b1a">
+    <text x="0" y="0" class="micro">24PX / REVERSE / MOTION DNA</text>
+    <use href="#split-bracket" x="0" y="34" width="32" height="32" />
+    <rect x="74" y="24" width="112" height="112" fill="#181b1a" />
+    <g color="#f2efe7"><use href="#split-bracket" x="92" y="42" width="76" height="76" /></g>
+    <g color="#181b1a" opacity=".34"><use href="#split-bracket" x="238" y="60" width="40" height="40" /></g>
+    <g color="#181b1a" opacity=".64"><use href="#split-bracket" x="302" y="46" width="68" height="68" /></g>
+    <use href="#split-bracket" x="398" y="30" width="100" height="100" />
+  </g>
+
+  <g transform="translate(1106 798)" color="#181b1a">
+    <text x="0" y="0" class="micro">24PX / REVERSE / MOTION DNA</text>
+    <use href="#open-module" x="0" y="34" width="32" height="32" />
+    <rect x="74" y="24" width="112" height="112" fill="#181b1a" />
+    <g color="#f2efe7"><use href="#open-module" x="92" y="42" width="76" height="76" /></g>
+    <g color="#181b1a" opacity=".34"><use href="#open-module" x="238" y="60" width="40" height="40" /></g>
+    <g color="#181b1a" opacity=".64"><use href="#open-module" x="302" y="46" width="68" height="68" /></g>
+    <use href="#open-module" x="398" y="30" width="100" height="100" />
+  </g>
+
+  <text x="56" y="974" class="micro">INK #181B1A / PAPER #F2EFE7 / OFFSET OXIDE #C64A36</text>
+  <text x="1544" y="974" class="micro" text-anchor="end">MONOCHROME REMAINS THE PRIMARY SIGNATURE</text>
+</svg>

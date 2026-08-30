@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Photo Roll — Motion Study</title>
+    <style>
+      :root {
+        --paper: #f1eee7;
+        --ink: #1f1e1b;
+        --muted: #716c64;
+        --rule: rgba(31, 30, 27, 0.14);
+      }
+
+      * { box-sizing: border-box; }
+
+      html { background: var(--paper); }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 1px 1px, rgba(31, 30, 27, 0.075) 0.7px, transparent 0.85px) 0 0 / 12px 14px,
+          var(--paper);
+        font-family: "Helvetica Neue", "Noto Sans SC", sans-serif;
+      }
+
+      .roll-study {
+        position: relative;
+        height: 310vh;
+      }
+
+      .stage {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow: hidden;
+        isolation: isolate;
+      }
+
+      .label,
+      .counter,
+      .instruction,
+      .progress-readout {
+        position: absolute;
+        z-index: 3;
+        margin: 0;
+      }
+
+      .label {
+        top: clamp(24px, 5vw, 70px);
+        left: clamp(24px, 4vw, 64px);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .counter {
+        top: clamp(24px, 5vw, 70px);
+        right: clamp(24px, 4vw, 64px);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+      }
+
+      .instruction {
+        left: clamp(24px, 4vw, 64px);
+        bottom: clamp(24px, 5vw, 64px);
+        width: min(280px, 35vw);
+        color: var(--muted);
+        font-size: clamp(13px, 1vw, 16px);
+        line-height: 1.5;
+      }
+
+      .progress-readout {
+        right: clamp(24px, 4vw, 64px);
+        bottom: clamp(24px, 5vw, 64px);
+        font-size: 12px;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.12em;
+      }
+
+      .photo-area {
+        position: absolute;
+        right: clamp(26px, 6vw, 118px);
+        bottom: clamp(38px, 7vh, 86px);
+        width: min(62vw, 1080px);
+        height: auto;
+        aspect-ratio: 16 / 9;
+        z-index: 2;
+      }
+
+      .photo-area::after {
+        content: "";
+        position: absolute;
+        left: 8%;
+        right: 4%;
+        bottom: -18px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(31, 30, 27, 0.22);
+        filter: blur(18px);
+        opacity: var(--shadow-opacity, 0);
+        pointer-events: none;
+      }
+
+      #roll-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .floor-mark {
+        position: absolute;
+        left: 25vw;
+        right: 0;
+        bottom: 13vh;
+        height: 1px;
+        z-index: 1;
+        background: var(--rule);
+      }
+
+      @media (max-width: 760px) {
+        .photo-area {
+          width: 88vw;
+          height: auto;
+          right: 6vw;
+          bottom: 17vh;
+        }
+
+        .instruction { width: 54vw; }
+        .floor-mark { left: 0; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="roll-study" aria-label="照片向上卷入动效实验">
+      <section class="stage">
+        <p class="label">Motion study / 01</p>
+        <p class="counter">UPWARD ROLL</p>
+        <p class="instruction">向下滚动：卷边从页面底部向上移动，已经展开的照片留在卷边下方；向上滚动会沿原路径重新卷回。</p>
+        <output class="progress-readout" aria-live="polite">ROLL 000%</output>
+        <div class="floor-mark" aria-hidden="true"></div>
+        <div class="photo-area" aria-label="项目照片占位预览">
+          <canvas id="roll-canvas"></canvas>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const study = document.querySelector('.roll-study');
+      const area = document.querySelector('.photo-area');
+      const canvas = document.querySelector('#roll-canvas');
+      const readout = document.querySelector('.progress-readout');
+      const ctx = canvas.getContext('2d', { alpha: true });
+      const source = document.createElement('canvas');
+      const sourceCtx = source.getContext('2d');
+      const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      source.width = 1440;
+      source.height = 810;
+
+      function buildPlaceholder() {
+        const w = source.width;
+        const h = source.height;
+        const gradient = sourceCtx.createLinearGradient(0, 0, w, h);
+        gradient.addColorStop(0, '#241b2b');
+        gradient.addColorStop(0.5, '#293742');
+        gradient.addColorStop(1, '#9d684f');
+        sourceCtx.fillStyle = gradient;
+        sourceCtx.fillRect(0, 0, w, h);
+
+        sourceCtx.fillStyle = 'rgba(245, 235, 219, 0.94)';
+        sourceCtx.font = '500 86px Georgia, serif';
+        sourceCtx.fillText('PROJECT', 92, 180);
+        sourceCtx.fillText('PREVIEW', 92, 270);
+
+        sourceCtx.strokeStyle = 'rgba(245, 235, 219, 0.38)';
+        sourceCtx.lineWidth = 2;
+        sourceCtx.strokeRect(92, 330, w - 184, 330);
+
+        for (let column = 0; column < 5; column += 1) {
+          const x = 122 + column * 236;
+          sourceCtx.fillStyle = column % 2 ? 'rgba(230, 218, 196, 0.18)' : 'rgba(118, 174, 184, 0.24)';
+          sourceCtx.fillRect(x, 370, 186, 248);
+        }
+
+        sourceCtx.fillStyle = 'rgba(245, 235, 219, 0.76)';
+        sourceCtx.font = '600 22px Helvetica Neue, sans-serif';
+        sourceCtx.fillText('SELECTED WORK · MOTION PLACEHOLDER', 96, 746);
+
+        sourceCtx.globalAlpha = 0.28;
+        sourceCtx.fillStyle = '#ffffff';
+        for (let y = 1; y < h; y += 5) sourceCtx.fillRect(0, y, w, 1);
+        sourceCtx.globalAlpha = 1;
+      }
+
+      buildPlaceholder();
+
+      let dpr = 1;
+      let width = 1;
+      let height = 1;
+      let targetProgress = reducedMotion ? 1 : 0;
+      let renderedProgress = targetProgress;
+
+      function resizeCanvas() {
+        const rect = area.getBoundingClientRect();
+        dpr = Math.min(devicePixelRatio || 1, 2);
+        width = Math.max(1, rect.width);
+        height = Math.max(1, rect.height);
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        drawRoll(renderedProgress);
+      }
+
+      function drawRoll(progress) {
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.clearRect(0, 0, width, height);
+
+        if (progress <= 0.002) {
+          area.style.setProperty('--shadow-opacity', '0');
+          return;
+        }
+
+        const smoothstep = (value) => value * value * (3 - 2 * value);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const appearance = smoothstep(Math.min(1, progress / 0.16));
+        const curlStrength = Math.sin(Math.PI * progress);
+
+        // Original study direction: the complete sheet grows upward from the
+        // lower edge. Only its lower-right edge is folded; the upper area is
+        // kept flat so the effect reads as one page rolling open.
+        const finalX = width * 0.035;
+        const finalY = height * 0.055;
+        const flatW = width * 0.91;
+        const flatH = height * 0.82;
+        const fixedBottom = finalY + flatH;
+        const sheetW = flatW * eased * (1 - 0.055 * curlStrength);
+        const sheetH = flatH * eased;
+        const sheetY = fixedBottom - sheetH;
+        const step = 2;
+
+        area.style.setProperty(
+          '--shadow-opacity',
+          String(Math.min(0.62, appearance * eased * 0.72))
+        );
+
+        ctx.save();
+        ctx.globalAlpha = appearance;
+
+        for (let sourceY = 0; sourceY < source.height; sourceY += step) {
+          const normalizedY = sourceY / source.height;
+          const lowerFold = Math.pow(normalizedY, 2.7);
+          const foldEnvelope = Math.sin(
+            Math.min(1, Math.max(0, (normalizedY - 0.66) / 0.34)) * Math.PI * 0.5
+          );
+
+          // Before the later refinement this was intentionally a one-sided
+          // lower fold: no upper curl and no foreground push at the base.
+          const foldLift = flatH * eased * curlStrength * 0.024 * lowerFold;
+          const destinationY = sheetY + normalizedY * sheetH - foldLift;
+          const destinationH = Math.max(
+            1.15,
+            (step / source.height) * sheetH + 0.7
+          );
+
+          // The visible roll lives exclusively at the lower-right. Its small
+          // alternating offset is the old, calmer edge treatment.
+          const foldInset = flatW * eased * curlStrength * 0.075 * lowerFold;
+          const broadFold = Math.sin(normalizedY * Math.PI * 4.4 + 0.3)
+            * flatW * 0.012 * eased * curlStrength * foldEnvelope;
+          const paperTeeth = Math.sin(normalizedY * Math.PI * 13.5 + 1.2)
+            * flatW * 0.0028 * eased * curlStrength * foldEnvelope;
+          const destinationW = Math.max(
+            1,
+            sheetW - foldInset + broadFold + paperTeeth
+          );
+
+          ctx.drawImage(
+            source,
+            0,
+            sourceY,
+            source.width,
+            Math.min(step + 1, source.height - sourceY),
+            finalX,
+            destinationY,
+            destinationW,
+            destinationH
+          );
+        }
+
+        // A restrained line at the lower roll makes the fold readable without
+        // introducing the later, stronger foreground bulge.
+        if (curlStrength > 0.02) {
+          const edgeY = sheetY + sheetH * 0.978 - flatH * curlStrength * 0.016;
+          const edgeGradient = ctx.createLinearGradient(finalX, edgeY - 8, finalX, edgeY + 8);
+          edgeGradient.addColorStop(0, 'rgba(255,255,255,0)');
+          edgeGradient.addColorStop(0.48, `rgba(255,255,255,${0.14 * curlStrength})`);
+          edgeGradient.addColorStop(1, `rgba(18,17,16,${0.12 * curlStrength})`);
+          ctx.globalAlpha = appearance;
+          ctx.fillStyle = edgeGradient;
+          ctx.fillRect(finalX, edgeY - 8, Math.max(1, sheetW), 16);
+        }
+
+        ctx.restore();
+        ctx.globalAlpha = 1;
+      }
+
+      function updateTarget() {
+        const rect = study.getBoundingClientRect();
+        const travel = Math.max(1, study.offsetHeight - innerHeight);
+        targetProgress = reducedMotion ? 1 : Math.min(1, Math.max(0, -rect.top / travel));
+        const percent = Math.round(targetProgress * 100);
+        readout.value = `ROLL ${String(percent).padStart(3, '0')}%`;
+        readout.textContent = readout.value;
+      }
+
+      function animate() {
+        renderedProgress += (targetProgress - renderedProgress) * 0.14;
+        if (Math.abs(targetProgress - renderedProgress) < 0.0001) renderedProgress = targetProgress;
+        drawRoll(renderedProgress);
+        requestAnimationFrame(animate);
+      }
+
+      addEventListener('scroll', updateTarget, { passive: true });
+      addEventListener('resize', () => {
+        resizeCanvas();
+        updateTarget();
+      });
+
+      resizeCanvas();
+      updateTarget();
+      animate();
+    </script>
+  </body>
+</html>
