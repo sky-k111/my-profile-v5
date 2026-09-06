@@ -58,10 +58,10 @@ const PROJECTS: Project[] = [
     title: 'AI Name',
     label: 'AI naming tool',
     href: 'https://github.com/sky-k111/ai-name',
-    stack: ['Vue 3', 'Vite', 'Tailwind CSS', 'FastAPI', 'SQLAlchemy', 'DeepSeek', 'SQLite', 'JWT'],
+    stack: ['Vue 3', 'Vite', 'Tailwind CSS', 'FastAPI', 'SQLAlchemy', 'SQLite', 'JWT'],
     notes: [
-      '它不只是“让 AI 吐出一个名字”。基础取名从姓氏、偏好与风格中生成候选；AI 名字分析继续拆解寓意、音律与文化联想；名字对比把模糊的喜欢变成可以权衡的判断；精品取名则给出更完整、更具方向感的方案。',
-      'Vue 3、Vite 与 Tailwind CSS 塑造交互表层，FastAPI 和 SQLAlchemy 承接业务与数据，DeepSeek 负责生成与分析，JWT 与 bcrypt 守住身份边界。这个项目让我意识到，模型只是灵感的火种，真正的产品来自前后端、数据、安全与部署共同构成的闭环。',
+      '名字往往始于感觉，却需要在寓意、音律、文化语境与个人偏好之间反复权衡。AI Name 尝试把这种难以描述的直觉拆解成一套清晰的命名过程：从姓氏与风格偏好出发生成候选，再通过名字解析、方案对比和精选推荐，帮助使用者逐步找到真正契合自己的答案。',
+      '项目以 Vue 3 和 Tailwind CSS 构建轻盈、克制的交互界面，FastAPI 与 SQLAlchemy 负责业务逻辑和数据流转，JWT 与 bcrypt 建立可靠的身份边界。它让我开始从“功能是否实现”转向思考“判断如何被建立”：AI 提供可能性，而一个成熟的产品需要把这些可能性组织成可信、透明且易于理解的选择。',
     ],
     mediaSrcs: [
       '/projects/ai-name-01.mp4',
