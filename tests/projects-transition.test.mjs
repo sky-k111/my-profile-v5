@@ -97,10 +97,10 @@ test('The projects intro uses paper grain and a Canvas-based glitch field', asyn
   assert.match(canvasField, /\[\[0, \.55\], \[\.18, \.48\], \[\.34, \.63\]/);
   assert.match(canvasField, /drawPaperNoise/);
   assert.match(snowField, /const FRAME_INTERVAL = 1000 \/ 12/);
-  assert.match(snowField, /const SNOW_FRAME_COUNT = 3/);
+  assert.doesNotMatch(snowField, /SNOW_FRAME_COUNT|snowFrameIndex/);
   assert.match(snowField, /const MAX_SAMPLE_PIXELS = 900_000/);
-  assert.match(snowField, /snowFrames = Array\.from/);
-  assert.match(snowField, /context\.drawImage\(frame, 0, 0\)/);
+  assert.match(snowField, /const frame = createSnowFrame\(canvas.width, canvas.height\)/);
+  assert.match(snowField, /context\.putImageData\(frame, 0, 0\)/);
   assert.equal(snowField.match(/createImageData\(/g)?.length, 1);
   assert.match(snowField, /const MIN_LARGE_GRAINS = 4/);
   assert.match(snowField, /Hard-edged pixel bursts/);
@@ -265,11 +265,8 @@ test('Projects reveals a scrolling media gallery and changes galleries on projec
   assert.match(directory, /onPointerEnter/);
   assert.match(directory, /onFocus/);
   assert.match(directory, /mediaSrcs/);
-  assert.match(directory, /homepage-intro\.mp4/);
-  assert.match(directory, /homepage-about-skills\.mp4/);
-  assert.match(directory, /homepage-music\.mp4/);
-  assert.match(directory, /homepage-sports\.mp4/);
-  assert.match(directory, /homepage-thanks\.mp4/);
+  assert.match(directory, /homepage-01\.mp4/);
+  assert.match(directory, /homepage-09\.mp4/);
   assert.match(directory, /<video/);
   assert.match(directory, /projects-transition__project-media-rail/);
   assert.match(directory, /projects-transition__project-media-item/);
@@ -360,16 +357,29 @@ test('Pending project media preloads behind the loader and crossfades without re
   assert.match(styles, /data-project-revealing.*projects-transition__project-loader/s);
 });
 
-test('The homepage gallery ships every supplied recording', async () => {
-  const assets = [
-    '../public/projects/homepage-intro.mp4',
-    '../public/projects/homepage-about-skills.mp4',
-    '../public/projects/homepage-music.mp4',
-    '../public/projects/homepage-sports.mp4',
-    '../public/projects/homepage-thanks.mp4',
+test('The homepage gallery ships every edited clip in sequence', async () => {
+  const directory = await readFile(new URL('../src/projects/ProjectDirectory.tsx', import.meta.url), 'utf8');
+  const mediaSources = [
+    '/projects/homepage-01.mp4',
+    '/projects/homepage-02.mp4',
+    '/projects/homepage-03.mp4',
+    '/projects/homepage-04.mp4',
+    '/projects/homepage-05.mp4',
+    '/projects/homepage-06.mp4',
+    '/projects/homepage-07.mp4',
+    '/projects/homepage-08.mp4',
+    '/projects/homepage-09.mp4',
   ];
 
-  await Promise.all(assets.map(asset => assert.doesNotReject(access(new URL(asset, import.meta.url)))));
+  await Promise.all(
+    mediaSources.map(mediaSrc =>
+      assert.doesNotReject(access(new URL(`../public${mediaSrc}`, import.meta.url))),
+    ),
+  );
+
+  for (const mediaSrc of mediaSources) {
+    assert.match(directory, new RegExp(mediaSrc.replaceAll('.', '\\.')));
+  }
 });
 
 test('The AI Name gallery ships every supplied recording in sequence', async () => {
@@ -420,6 +430,10 @@ test('The EduCanvas gallery ships every supplied recording in sequence', async (
     '/projects/educanvas-02.mp4',
     '/projects/educanvas-03.mp4',
     '/projects/educanvas-04.mp4',
+    '/projects/educanvas-05.mp4',
+    '/projects/educanvas-06.mp4',
+    '/projects/educanvas-07.mp4',
+    '/projects/educanvas-08.mp4',
   ];
 
   await Promise.all(

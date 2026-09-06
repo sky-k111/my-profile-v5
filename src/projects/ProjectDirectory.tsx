@@ -41,11 +41,15 @@ const PROJECTS: Project[] = [
       '现在回看，它还保留着初次创作的青涩：技术选择不够丰富，视觉语汇也显得克制甚至单一。但它像一枚起点坐标，让我第一次知道，React、TypeScript、GSAP 与 Three.js 可以被编排成一段关于自己的叙事。',
     ],
     mediaSrcs: [
-      '/projects/homepage-intro.mp4',
-      '/projects/homepage-about-skills.mp4',
-      '/projects/homepage-music.mp4',
-      '/projects/homepage-sports.mp4',
-      '/projects/homepage-thanks.mp4',
+      '/projects/homepage-01.mp4',
+      '/projects/homepage-02.mp4',
+      '/projects/homepage-03.mp4',
+      '/projects/homepage-04.mp4',
+      '/projects/homepage-05.mp4',
+      '/projects/homepage-06.mp4',
+      '/projects/homepage-07.mp4',
+      '/projects/homepage-08.mp4',
+      '/projects/homepage-09.mp4',
     ],
   },
   {
@@ -101,6 +105,10 @@ const PROJECTS: Project[] = [
       '/projects/educanvas-02.mp4',
       '/projects/educanvas-03.mp4',
       '/projects/educanvas-04.mp4',
+      '/projects/educanvas-05.mp4',
+      '/projects/educanvas-06.mp4',
+      '/projects/educanvas-07.mp4',
+      '/projects/educanvas-08.mp4',
     ],
   },
   {
@@ -301,6 +309,7 @@ export default function ProjectDirectory() {
   const switchTimeoutRef = useRef<number | undefined>(undefined);
   const revealTimeoutRef = useRef<number | undefined>(undefined);
   const pendingIdRef = useRef<Project['id'] | null>(null);
+  const pointerPositionRef = useRef<{ x: number; y: number } | null>(null);
   const activeProject = PROJECTS.find(project => project.id === activeId) ?? PROJECTS[0];
   const pendingProject = PROJECTS.find(project => project.id === pendingId);
   const revealingProject = PROJECTS.find(project => project.id === revealingId);
@@ -373,8 +382,18 @@ export default function ProjectDirectory() {
                 data-project-id={project.id}
                 data-project-emphasis={emphasis}
                 type="button"
-                onPointerEnter={selectProject}
-                onFocus={selectProject}
+                onPointerEnter={event => {
+                  pointerPositionRef.current = { x: event.clientX, y: event.clientY };
+                }}
+                onPointerMove={event => {
+                  const previous = pointerPositionRef.current;
+                  pointerPositionRef.current = { x: event.clientX, y: event.clientY };
+                  if (event.pointerType !== 'touch' && previous &&
+                    Math.hypot(event.clientX - previous.x, event.clientY - previous.y) > 0) selectProject();
+                }}
+                onFocus={event => {
+                  if (event.currentTarget.matches(':focus-visible')) selectProject();
+                }}
                 onClick={() => {
                   queueProjectSwitch(project.id);
                   setHoveredId(project.id);

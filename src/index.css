@@ -26,6 +26,17 @@ html, body {
   color: var(--ink);
 }
 
+html {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
 body {
   overflow-x: hidden;
   font-family: Inter, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -83,8 +94,8 @@ body {
   z-index: 22;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  padding: clamp(28px, 4.4vw, 72px) clamp(28px, 5vw, 80px);
+  justify-content: flex-end;
+  padding: clamp(28px, 4.4vw, 72px) clamp(28px, 5vw, 80px) clamp(104px, 12vh, 140px);
   pointer-events: none;
 }
 
@@ -94,6 +105,10 @@ body {
 }
 
 .hero-section-index {
+  position: absolute;
+  z-index: 23;
+  top: clamp(104px, 13vh, 150px);
+  left: clamp(28px, 4.6vw, 118px);
   width: max-content;
   color: #fff5ef;
   font-size: clamp(.66rem, .72vw, .76rem);
@@ -378,7 +393,11 @@ body {
     grid-template-rows: auto 1fr;
   }
   .hero-copy {
-    padding: 72px 20px 22px;
+    padding: 72px 20px 112px;
+  }
+  .hero-section-index {
+    top: 118px;
+    left: 18px;
   }
   #hero-title {
     top: 35%;
@@ -400,12 +419,6 @@ body {
     bottom: 14px;
   }
   .hero-edition {
-    display: none;
-  }
-}
-
-@media (min-width: 901px) {
-  .hero-section-index {
     display: none;
   }
 }

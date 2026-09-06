@@ -5,11 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="YIKAI CHEN — AI / Computer Science" />
     <title>YIKAI CHEN — AI / CS</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/yikai-logo.png" type="image/png" />
     <link rel="preload" href="/fonts/about/cormorant-garamond/files/cormorant-garamond-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/fonts/about/cormorant-garamond/index.css" />
     <link rel="stylesheet" href="/fonts/about/noto-sans-sc/index.css" />
-    <style>html,body,#root{min-height:100%;margin:0;background:#2a1015}#color-wash{position:fixed;inset:0;z-index:19;pointer-events:none;background:#2a1015}html[data-portfolio-booting],html[data-portfolio-booting] body,html[data-portfolio-booting] #root{background:#fff}html[data-portfolio-booting] #color-wash{background:#fff}</style>
+    <style>html,body,#root{min-height:100%;margin:0;background:#2a1015}#color-wash{position:fixed;inset:0;z-index:19;pointer-events:none;background:#2a1015}html[data-portfolio-booting],html[data-portfolio-booting] body,html[data-portfolio-booting] #root{background:#050505}html[data-portfolio-booting] #color-wash{background:#050505}</style>
+    <script>
+      (() => {
+        const navigationEntry = performance.getEntriesByType?.('navigation')[0];
+        const isReload = navigationEntry?.type === 'reload' || performance.navigation?.type === 1;
+        const refreshTarget = decodeURIComponent(location.hash.replace(/^#/, ''));
+        const isPortfolioSection = ['about', 'projects', 'contact'].includes(refreshTarget);
+
+        if (!isReload || !isPortfolioSection) return;
+
+        history.scrollRestoration = 'manual';
+        history.replaceState(history.state, '', `${location.pathname}${location.search}`);
+        document.documentElement.dataset.portfolioRefreshReset = 'home';
+        scrollTo(0, 0);
+      })();
+    </script>
   </head>
   <body>
     <div id="color-wash" aria-hidden="true"></div>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import BrandMark from '@/components/BrandMark';
+import PersonalLogo from '@/components/PersonalLogo';
 import SectionMarks from '@/components/SectionMarks';
 import EthanSignature from './EthanSignature';
 import './contact.css';
@@ -139,12 +139,14 @@ export default function ContactSection() {
         <div className="contact__grid" aria-hidden="true" />
 
         <a className="contact__identity" href="#home" aria-label="Back to Yikai Chen home">
-          <BrandMark className="contact__identity-mark" />
-          <span>
+          <PersonalLogo className="contact__identity-mark" />
+          <span className="contact__identity-name">
             <strong>YIKAI</strong>
             <strong>CHEN</strong>
           </span>
         </a>
+
+        <p className="contact__section-index">04 / CONTACT</p>
 
         <p className="contact__availability">
           <span aria-hidden="true" />
@@ -165,7 +167,7 @@ export default function ContactSection() {
         </div>
 
         <aside className="contact__panel contact__panel--details" aria-labelledby="contact-details-title">
-          <p id="contact-details-title" className="contact__panel-label">CONTACT / 04</p>
+          <p id="contact-details-title" className="contact__panel-label">DIRECT CHANNELS</p>
           <a className="contact__primary-link" href={`mailto:${EMAIL}`}>
             <span className="contact__link-lead">
               <span className="contact__mini-icon" aria-hidden="true">

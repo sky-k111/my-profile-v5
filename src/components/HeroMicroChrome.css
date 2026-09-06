@@ -1,0 +1,151 @@
+@font-face {
+  font-family: 'Hero Micro Interface';
+  src: url('/fonts/roboto-flex-latin-full-normal.woff2') format('woff2');
+  font-display: swap;
+  font-style: normal;
+  font-weight: 100 1000;
+}
+
+.hero-shell {
+  position: relative;
+}
+
+.hero-micro-chrome {
+  position: absolute;
+  z-index: 25;
+  inset: 0;
+  color: #fff5ef;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 180ms ease;
+}
+
+.hero-micro-chrome[data-opening='true'] {
+  z-index: 1000;
+}
+
+.hero-micro-chrome__block {
+  position: absolute;
+  display: grid;
+  gap: .18em;
+  margin: 0;
+  color: #fff5ef;
+  font-family: 'Hero Micro Interface', ui-monospace, monospace;
+  font-size: clamp(.76rem, .86vw, 1rem);
+  font-variation-settings: 'wght' 680, 'wdth' 76, 'opsz' 42;
+  font-weight: 680;
+  letter-spacing: .055em;
+  line-height: 1.12;
+  text-transform: uppercase;
+  transition: color 320ms ease, text-shadow 320ms ease;
+}
+
+.hero-micro-chrome__block--top-left {
+  top: clamp(30px, 5.2vh, 70px);
+  left: clamp(28px, 4.6vw, 118px);
+}
+
+.hero-micro-chrome__block--top-right {
+  top: clamp(30px, 5.2vh, 70px);
+  right: clamp(28px, 4.6vw, 118px);
+  color: #f3e8d8;
+  text-align: right;
+}
+
+.hero-micro-chrome__block--bottom-left {
+  bottom: clamp(38px, 5.6vh, 76px);
+  left: clamp(28px, 4.6vw, 118px);
+}
+
+.hero-micro-chrome__block--bottom-right {
+  right: clamp(28px, 3.2vw, 52px);
+  bottom: clamp(38px, 5.6vh, 76px);
+  color: #f3e8d8;
+  text-align: right;
+}
+
+.hero-micro-chrome[data-opening='true'] .hero-micro-chrome__block {
+  color: #f3e8d8;
+  text-shadow: 0 1px 7px rgba(0, 0, 0, .5);
+}
+
+.hero-micro-chrome__line,
+.hero-micro-chrome__line > span {
+  display: block;
+}
+
+.hero-micro-chrome__character {
+  --micro-index: 0;
+  display: inline-block;
+  font-style: normal;
+  opacity: 0;
+  animation: hero-micro-character-in 1200ms steps(1, end) calc(240ms + var(--micro-index) * 17ms) forwards;
+}
+
+.hero-micro-chrome__time {
+  display: block;
+  opacity: 0;
+  animation: hero-micro-time-in 900ms steps(3, end) 1380ms forwards;
+}
+
+@keyframes hero-micro-character-in {
+  0%, 9% { opacity: 0; }
+  10%, 24% { opacity: .95; }
+  25%, 39% { opacity: .1; }
+  40%, 56% { opacity: .72; }
+  57%, 69% { opacity: .18; }
+  70%, 84% { opacity: .94; }
+  85%, 100% { opacity: 1; }
+}
+
+@keyframes hero-micro-time-in {
+  0%, 24% { opacity: 0; }
+  25%, 48% { opacity: .18; }
+  49%, 72% { opacity: .58; }
+  73%, 100% { opacity: 1; }
+}
+
+@media (max-width: 700px) {
+  .hero-micro-chrome__block {
+    font-size: clamp(.62rem, 2.45vw, .72rem);
+    letter-spacing: .035em;
+  }
+
+  .hero-micro-chrome__block--top-left,
+  .hero-micro-chrome__block--top-right {
+    top: 68px;
+  }
+
+  .hero-micro-chrome__block--top-left,
+  .hero-micro-chrome__block--bottom-left {
+    left: 18px;
+  }
+
+  .hero-micro-chrome__block--top-right,
+  .hero-micro-chrome__block--bottom-right {
+    right: 18px;
+  }
+
+  .hero-micro-chrome__block--top-left {
+    max-width: 52vw;
+  }
+
+  .hero-micro-chrome__block--bottom-left,
+  .hero-micro-chrome__block--bottom-right {
+    bottom: 58px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-micro-chrome__block,
+  .hero-micro-chrome__character,
+  .hero-micro-chrome__time {
+    transition: none;
+    animation: none;
+  }
+
+  .hero-micro-chrome__character,
+  .hero-micro-chrome__time {
+    opacity: 1;
+  }
+}

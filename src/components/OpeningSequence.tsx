@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useRef, type AnimationEvent, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, type CSSProperties } from 'react';
 import {
+  OPENING_LABEL,
   OPENING_SEQUENCE_DURATION_MS,
-  resolveNameTreatment,
   resolveOpeningFrame,
+  resolveOpeningGlyphOpacity,
   resolveOpeningPlayback,
 } from '@/lib/opening-sequence';
+import PersonalLogo from './PersonalLogo';
 import './OpeningSequence.css';
 
 type OpeningSequenceProps = {
@@ -12,20 +14,48 @@ type OpeningSequenceProps = {
   onPrepareHeroEffects: () => void;
 };
 
-const mix = (from: number, to: number, progress: number) => from + (to - from) * progress;
+const openingWords = ['YIKAI', 'CHEN'] as const;
+
+function GlyphShape({ letter }: { letter: string }) {
+  switch (letter) {
+    case 'Y':
+      return <path d="M0 0h16l16 32L48 0h16L40 48v48H24V48Z" />;
+    case 'I':
+      return <path d="M0 0h64v16H40v64h24v16H0V80h24V16H0Z" />;
+    case 'K':
+      return <path d="M0 0h16v38L47 0h19L35 46l32 50H48L24 59l-8 11v26H0Z" />;
+    case 'A':
+      return (
+        <path
+          fillRule="evenodd"
+          d="M24 0h16l24 96H47l-6-24H23l-6 24H0Zm3 56h10l-5-24Z"
+        />
+      );
+    case 'C':
+      return <path d="M15 0h49v16H21l-5 5v54l5 5h43v16H15L0 81V15Z" />;
+    case 'H':
+      return <path d="M0 0h16v39h32V0h16v96H48V55H16v41H0Z" />;
+    case 'E':
+      return <path d="M0 0h64v16H16v23h39v16H16v25h48v16H0Z" />;
+    case 'N':
+      return <path d="M0 0h16l32 62V0h16v96H48L16 34v62H0Z" />;
+    default:
+      return null;
+  }
+}
 
 export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: OpeningSequenceProps) {
   const completedRef = useRef(false);
   const heroEffectsPreparedRef = useRef(false);
   const rootRef = useRef<HTMLElement | null>(null);
-  const constructRef = useRef<HTMLDivElement | null>(null);
-  const nameRef = useRef<HTMLDivElement | null>(null);
-  const mediaFrameRef = useRef<HTMLDivElement | null>(null);
-  const mediaRef = useRef<HTMLImageElement | null>(null);
+  const counterRef = useRef<HTMLSpanElement | null>(null);
+  const markRef = useRef<HTMLDivElement | null>(null);
+  const glyphRefs = useRef<Array<SVGSVGElement | null>>([]);
 
   const finishOpening = useCallback(() => {
     if (completedRef.current) return;
     completedRef.current = true;
+    delete document.documentElement.dataset.portfolioOpening;
     onComplete();
   }, [onComplete]);
 
@@ -40,70 +70,44 @@ export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: Op
     }
 
     document.documentElement.dataset.portfolioOpening = 'active';
-    const fallbackTimer = window.setTimeout(finishOpening, playback.durationMs + 300);
+    const fallbackTimer = window.setTimeout(finishOpening, playback.durationMs + 500);
     const startedAt = performance.now();
     let animationFrame = 0;
 
     const renderFrame = (now: number) => {
       const elapsed = Math.min(now - startedAt, playback.durationMs);
       const frame = resolveOpeningFrame(elapsed);
+
       if (frame.prepareHeroEffects && !heroEffectsPreparedRef.current) {
         heroEffectsPreparedRef.current = true;
         onPrepareHeroEffects();
       }
-      const compact = window.innerWidth <= 700;
-      const startSide = compact ? 78 : 104;
-      const finalWidth = Math.min(window.innerWidth * (compact ? 0.88 : 0.82), 1_320);
-      const finalHeight = Math.min(window.innerHeight * (compact ? 0.7 : 0.72), 790);
-      const constructWidth = mix(startSide, finalWidth, frame.spread);
-      const constructHeight = mix(startSide, finalHeight, frame.spread);
-      const mediaStart = compact ? 58 : 76;
-      const frameGap = compact ? 24 : Math.min(64, finalWidth * 0.045);
-      const mediaWidth = Math.min(
-        mix(mediaStart, finalWidth - frameGap * 2, frame.mediaReveal),
-        Math.max(mediaStart, constructWidth - frameGap * 2),
+
+      rootRef.current?.style.setProperty('--opening-interface-opacity', `${frame.interfaceOpacity}`);
+      rootRef.current?.style.setProperty('--opening-progress', `${frame.progress}`);
+      rootRef.current?.style.setProperty('--opening-counter-enter', `${frame.counterEntrance}`);
+      rootRef.current?.style.setProperty('--opening-curtain', `${frame.curtain}`);
+      rootRef.current?.setAttribute(
+        'data-curtain-gap',
+        frame.curtain >= 0.055 ? 'open' : 'covered',
       );
-      const mediaHeight = Math.min(
-        mix(mediaStart, finalHeight - frameGap * 2, frame.mediaReveal),
-        Math.max(mediaStart, constructHeight - frameGap * 2),
-      );
-      const armWidth = mix(startSide, compact ? 72 : Math.min(190, finalWidth * 0.18), frame.spread);
-      const armHeight = mix(startSide, compact ? 72 : Math.min(140, finalHeight * 0.2), frame.spread);
 
-      rootRef.current?.style.setProperty('--opening-handoff', `${frame.handoff}`);
-
-      if (constructRef.current) {
-        constructRef.current.style.width = `${constructWidth}px`;
-        constructRef.current.style.height = `${constructHeight}px`;
-        constructRef.current.style.setProperty('--opening-arm-width', `${armWidth}px`);
-        constructRef.current.style.setProperty('--opening-arm-height', `${armHeight}px`);
-        constructRef.current.style.setProperty('--opening-slash-reveal', `${frame.slashReveal}`);
+      if (counterRef.current) {
+        counterRef.current.textContent = String(frame.counter);
+        counterRef.current.style.opacity = `${frame.counterOpacity}`;
       }
 
-      if (nameRef.current) {
-        const nameTreatment = resolveNameTreatment(frame.mediaReveal);
-        nameRef.current.style.opacity = `${frame.nameReveal}`;
-        nameRef.current.style.color = `rgba(${nameTreatment.tone}, ${nameTreatment.tone}, ${nameTreatment.tone}, ${nameTreatment.alpha})`;
-        nameRef.current.style.filter = `blur(${nameTreatment.blurPx}px)`;
-        nameRef.current.style.textShadow = frame.mediaReveal > 0
-          ? `0 0 ${3 * frame.mediaReveal}px rgba(255, 255, 255, ${0.07 * frame.mediaReveal})`
-          : 'none';
-        nameRef.current.style.clipPath = `inset(0 ${50 * (1 - frame.nameReveal)}% 0 ${50 * (1 - frame.nameReveal)}%)`;
-        nameRef.current.style.transform = `translate3d(-50%, -50%, 0) scale(${mix(0.96, 1, frame.nameReveal)})`;
-      }
+      if (markRef.current) markRef.current.style.opacity = `${frame.markOpacity}`;
 
-      if (mediaFrameRef.current) {
-        mediaFrameRef.current.style.width = `${mediaWidth}px`;
-        mediaFrameRef.current.style.height = `${mediaHeight}px`;
-        mediaFrameRef.current.style.opacity = `${frame.mediaReveal}`;
-      }
-
-      if (mediaRef.current) {
-        mediaRef.current.style.transform = `scale(${frame.cameraScale})`;
-      }
+      glyphRefs.current.forEach((glyph, index) => {
+        if (!glyph) return;
+        glyph.style.opacity = `${resolveOpeningGlyphOpacity(elapsed, index)}`;
+      });
 
       if (elapsed < playback.durationMs) {
         animationFrame = window.requestAnimationFrame(renderFrame);
+      } else {
+        finishOpening();
       }
     };
 
@@ -116,51 +120,72 @@ export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: Op
     };
   }, [finishOpening, onPrepareHeroEffects]);
 
-  const handleAnimationEnd = (event: AnimationEvent<HTMLElement>) => {
-    if (event.target === event.currentTarget && event.animationName === 'opening-sequence-exit') {
-      finishOpening();
-    }
-  };
-
   return (
     <section
       ref={rootRef}
       className="opening-sequence"
       style={{ '--opening-duration': `${OPENING_SEQUENCE_DURATION_MS}ms` } as CSSProperties}
       aria-hidden="true"
-      onAnimationEnd={handleAnimationEnd}
     >
-      <div ref={constructRef} className="opening-sequence__construct">
-        <div className="opening-sequence__corner opening-sequence__corner--top-left" aria-hidden="true">
-          <span className="opening-sequence__corner-horizontal" />
-          <span className="opening-sequence__corner-vertical" />
-        </div>
-        <div className="opening-sequence__corner opening-sequence__corner--bottom-right" aria-hidden="true">
-          <span className="opening-sequence__corner-horizontal" />
-          <span className="opening-sequence__corner-vertical" />
-        </div>
-
-        <div ref={mediaFrameRef} className="opening-sequence__media-frame">
-          <img
-            ref={mediaRef}
-            className="opening-sequence__media"
-            src="/opening/forest-opening.webp"
-            alt=""
-            decoding="async"
-            fetchPriority="high"
-            draggable={false}
-          />
-        </div>
-
-        <div ref={nameRef} className="opening-sequence__name">
-          <span>YIKAI</span>
-          <span>CHEN</span>
-        </div>
-
-        <span className="opening-sequence__slash" aria-hidden="true" />
+      <div className="opening-sequence__curtain">
+        <div className="opening-sequence__panel opening-sequence__panel--top" />
+        <div className="opening-sequence__panel opening-sequence__panel--bottom" />
       </div>
 
-      <p className="opening-sequence__edition">PORTFOLIO / 2026</p>
+      <div className="opening-sequence__registration opening-sequence__registration--one" />
+      <div className="opening-sequence__registration opening-sequence__registration--two" />
+      <div className="opening-sequence__registration opening-sequence__registration--three" />
+      <div className="opening-sequence__registration opening-sequence__registration--four" />
+
+      <div className="opening-sequence__stage">
+        <div className="opening-sequence__identity">
+          <h1 className="opening-sequence__label" aria-label={OPENING_LABEL}>
+            {openingWords.map((word, wordIndex) => (
+              <span className="opening-sequence__word" key={word}>
+                {word.split('').map((letter, letterIndex) => {
+                  const glyphIndex = wordIndex === 0 ? letterIndex : 5 + letterIndex;
+                  return (
+                    <svg
+                      key={`${letter}-${glyphIndex}`}
+                      ref={(element) => { glyphRefs.current[glyphIndex] = element; }}
+                      className="opening-sequence__glyph"
+                      viewBox="0 0 64 96"
+                      aria-hidden="true"
+                    >
+                      <GlyphShape letter={letter} />
+                    </svg>
+                  );
+                })}
+              </span>
+            ))}
+          </h1>
+        </div>
+
+        <div ref={markRef} className="opening-sequence__mark">
+          <PersonalLogo className="opening-sequence__brand-logo" />
+        </div>
+
+        <span ref={counterRef} className="opening-sequence__counter">0</span>
+      </div>
+
+      <footer className="opening-sequence__footer">
+        <div className="opening-sequence__rail">
+          <span className="opening-sequence__rail-fill" />
+          {[0, 25, 50, 75, 100].map((tick) => (
+            <span
+              key={tick}
+              className="opening-sequence__rail-tick"
+              style={{
+                '--tick-position': `${tick}%`,
+                '--tick-index': tick / 25,
+                '--tick-anchor': tick === 0 ? '0%' : tick === 100 ? '-100%' : '-50%',
+              } as CSSProperties}
+            >
+              {String(tick).padStart(2, '0')}
+            </span>
+          ))}
+        </div>
+      </footer>
     </section>
   );
 }

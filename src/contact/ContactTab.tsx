@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
-import BrandMark from '@/components/BrandMark';
+import PersonalLogo from '@/components/PersonalLogo';
 
 export default function ContactTab({ visible }: { visible: boolean }) {
   const [contactActive, setContactActive] = useState(false);
@@ -45,8 +45,8 @@ export default function ContactTab({ visible }: { visible: boolean }) {
       aria-label={contactActive ? 'Back to top' : 'Contact Yikai Chen'}
       onClick={navigate}
     >
-      <BrandMark className="contact-tab__mark" />
-      <span>{label}</span>
+      <PersonalLogo className="contact-tab__mark" />
+      <span className="contact-tab__label">{label}</span>
     </a>
   );
 }

@@ -1,0 +1,8 @@
+.personal-logo {
+  display: block;
+  aspect-ratio: 3 / 2;
+  color: inherit;
+  background: currentColor;
+  -webkit-mask: url('/yikai-logo.png') center / contain no-repeat;
+  mask: url('/yikai-logo.png') center / contain no-repeat;
+}

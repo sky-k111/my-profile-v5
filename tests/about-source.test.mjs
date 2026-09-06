@@ -189,14 +189,23 @@ test('Curiosity rail keeps one restrained palette while choreographing collage d
   assert.match(motion, /const drift = index % 2 === 0 \? -7 : 7/);
 });
 
-test('About opening keeps its original restrained Chinese signature and metadata', async () => {
+test('About replaces the detached Chinese profile metadata with a unique gravity scroll cue', async () => {
   const copy = await readFile(new URL('../src/about/AboutCopy.tsx', import.meta.url), 'utf8');
+  const cue = await readFile(new URL('../src/about/AboutScrollCue.tsx', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/about/about.css', import.meta.url), 'utf8');
 
-  assert.doesNotMatch(copy, /about-profile-mark|about-meta__item/);
-  assert.equal(copy.match(/className="about-meta"/g)?.length, 2);
-  assert.match(css, /\.about-name-zh\s*\{[^}]*font-size:\s*clamp\(1\.125rem, 1\.8vw, 1\.625rem\);[^}]*font-weight:\s*600/);
-  assert.match(css, /\.about-meta\s*\{[^}]*font-size:\s*0\.75rem;[^}]*line-height:\s*1\.5/);
+  assert.doesNotMatch(copy, /about-name-zh|about-meta/);
+  assert.match(copy, /<AboutScrollCue\s*\/>/);
+  assert.match(cue, /SCROLL DOWN TO SEE ANOTHER SIDE OF ME/);
+  assert.match(cue, /about-scroll-cue__orbit--outer/);
+  assert.match(cue, /about-scroll-cue__orbit--inner/);
+  assert.match(cue, /about-scroll-cue__drop/);
+  assert.doesNotMatch(cue, /chevron|arrow/);
+  assert.match(css, /@keyframes about-scroll-drop/);
+  assert.match(css, /@keyframes about-scroll-orbit/);
+  assert.match(css, /\.about-scroll-cue__label\s*\{[^}]*white-space:\s*nowrap;/s);
+  assert.doesNotMatch(css.match(/\.about-scroll-cue__label\s*\{[^}]*\}/s)?.[0] ?? '', /writing-mode/);
+  assert.match(css, /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.about-scroll-cue__drop/);
 });
 
 test('The growth photo starts only after the horizontal curiosity rail fades away', async () => {
@@ -226,16 +235,19 @@ test('Pinned About chapters reserve a clear zone below the fixed navigation', as
   assert.match(css, /\.about\[data-motion='ready'\] \[data-chapter='momentum'\] \.about-interests\s*\{[^}]*margin-top:\s*0/);
 });
 
-test('Interest copy keeps the original paired reading layout with a clear top-right start', async () => {
+test('Interest copy uses a numbered full-width editorial index', async () => {
   const copy = await readFile(new URL('../src/about/AboutCopy.tsx', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/about/about.css', import.meta.url), 'utf8');
 
   assert.doesNotMatch(copy, /INTEREST_ANCHORS|about-interests__grid|about-interest__anchor/);
-  assert.match(copy, /ABOUT_CONTENT\.interests\.map\(interest => \([\s\S]*?<h3 lang="en">\{interest\.title\}<\/h3>[\s\S]*?<p lang="zh-CN">\{interest\.copyZh\}<\/p>/);
-  assert.match(css, /\.about-interests\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\)/);
-  assert.match(css, /\.about-interest\s*\{[^}]*grid-template-columns:\s*minmax\(8rem, 0\.72fr\) minmax\(0, 1\.28fr\);[^}]*min-height:\s*clamp\(9\.5rem, 18vh, 13rem\);[^}]*border-top/);
-  assert.match(css, /\.about-interest h3\s*\{[^}]*font-size:\s*clamp\(0\.9rem, 1\.05vw, 1\.2rem\)/);
-  assert.match(css, /\.about-interest p\s*\{[^}]*font-size:\s*clamp\(1\.1rem, 1\.35vw, 1\.55rem\)/);
+  assert.match(copy, /about-interest__index[\s\S]*interest\.index/);
+  assert.match(copy, /about-interest__heading[\s\S]*interest\.title[\s\S]*interest\.accent/);
+  assert.match(copy, /about-interest__copy[\s\S]*interest\.copyZh/);
+  assert.match(copy, /about-interest__meta[\s\S]*interest\.meta/);
+  assert.match(css, /\.about-interests\s*\{[^}]*gap:\s*0;[^}]*border-bottom/);
+  assert.match(css, /\.about-interest\s*\{[^}]*grid-template-columns:\s*2\.7rem[^;]+;[^}]*min-height:\s*clamp\(6\.25rem, 12\.5vh, 8\.75rem\)/);
+  assert.match(css, /\.about-interest__heading\s*\{[^}]*Cormorant Garamond Variable[^}]*font-size:\s*clamp\(1\.45rem, 2\.05vw, 2\.55rem\)/);
+  assert.match(css, /about-interests:has\(\.about-interest:hover\)/);
   assert.match(css, /\.about\[data-motion='ready'\] \[data-chapter='momentum'\] \.about-interests\s*\{[^}]*margin-top:\s*0/);
 });
 

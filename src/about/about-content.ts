@@ -35,7 +35,13 @@ export type AboutContent = {
   growthZh: string;
   aiEn: string;
   growthEn: string;
-  interests: ReadonlyArray<{ title: string; copyZh: string }>;
+  interests: ReadonlyArray<{
+    index: string;
+    title: string;
+    accent: string;
+    meta: string;
+    copyZh: string;
+  }>;
   manifestoEn: string;
   manifestoZh: string;
 };
@@ -66,10 +72,10 @@ export const ABOUT_CONTENT: AboutContent = {
   aiEn: 'I bring Artificial Intelligence into both everyday life and creative work, using it to navigate complexity, expand ideas and transform fragments of inspiration into meaningful projects.',
   growthEn: 'I’m still learning, building and evolving. Growth is not a destination, but a continuous process of curiosity, action and renewal.',
   interests: [
-    { title: 'MUSIC / RESONANCE', copyZh: '音乐让我与某些难以言说的情绪产生共鸣，也让平凡的时刻拥有自己的节奏。' },
-    { title: 'FILM / PERSPECTIVE', copyZh: '电影让我短暂进入另一个世界，也在别人的故事里重新理解自己。' },
-    { title: 'SPORT / MOMENTUM', copyZh: '运动让我感受到身体与意志共同向前，也提醒我：持续本身就是一种力量。' },
-    { title: 'EVERYTHING INTERESTING / CURIOSITY', copyZh: '我喜欢一切能够让生活变得鲜活的事物，并始终对未知保留一点期待。' },
+    { index: '01', title: 'MUSIC', accent: 'RESONANCE', meta: 'SOUND / EMOTION', copyZh: '音乐让难以言说的情绪拥有共鸣。' },
+    { index: '02', title: 'FILM', accent: 'PERSPECTIVE', meta: 'FRAME / STORY', copyZh: '在别人的故事里，重新理解自己。' },
+    { index: '03', title: 'SPORT', accent: 'MOMENTUM', meta: 'BODY / MOTION', copyZh: '持续向前，本身就是一种力量。' },
+    { index: '04', title: 'EVERYTHING INTERESTING', accent: 'CURIOSITY', meta: 'UNKNOWN / ∞', copyZh: '对一切鲜活的事物和未知保留期待。' },
   ],
   manifestoEn: 'STAY PASSIONATE. KEEP MOVING FORWARD.',
   manifestoZh: '保持热爱，永远向前。',

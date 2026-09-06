@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from 'react';
 import { resolveInitialSectionId, resolveSectionNavigationUrl, type SiteNavItem } from '@/lib/navigation';
 import { resolveNavigationScrollBehavior } from '@/lib/navigation-motion';
-import BrandMark from './BrandMark';
+import PersonalLogo from './PersonalLogo';
 import './SiteNav.css';
 
 type SiteNavProps = {
   items: SiteNavItem[];
+  deepLinkRestoreReady: boolean;
 };
 
 type SectionRange = {
@@ -21,7 +22,7 @@ function syncSectionUrl(id: string) {
   window.history.replaceState(window.history.state, '', nextUrl);
 }
 
-export default function SiteNav({ items }: SiteNavProps) {
+export default function SiteNav({ items, deepLinkRestoreReady }: SiteNavProps) {
   const initialSectionIdRef = useRef(resolveInitialSectionId(window.location.hash, items));
   const [activeId, setActiveId] = useState(initialSectionIdRef.current ?? items[0]?.id ?? '');
   const activeIdRef = useRef(activeId);
@@ -34,6 +35,36 @@ export default function SiteNav({ items }: SiteNavProps) {
   const forcedActiveRef = useRef<string | null>(null);
   const refreshActiveSectionRef = useRef<() => void>(() => undefined);
   const navigationReleaseTimerRef = useRef<number | undefined>(undefined);
+
+  useLayoutEffect(() => {
+    if (!deepLinkRestoreReady) return;
+
+    const initialSectionId = initialSectionIdRef.current;
+    if (!initialSectionId) return;
+
+    const section = document.getElementById(initialSectionId);
+    if (!section) return;
+
+    // Projects overlaps About by one viewport. Arm its paper stage before the
+    // opening overlay is removed so a deep-link refresh never exposes the red
+    // handoff frame on its own.
+    if (initialSectionId === 'projects') {
+      window.dispatchEvent(new CustomEvent('site-section-navigation', {
+        detail: { id: initialSectionId },
+      }));
+    }
+
+    section.scrollIntoView({ block: 'start', behavior: 'auto' });
+
+    if (initialSectionId !== 'projects') {
+      window.dispatchEvent(new CustomEvent('site-section-navigation', {
+        detail: { id: initialSectionId },
+      }));
+    }
+
+    initialSectionIdRef.current = null;
+    requestAnimationFrame(() => refreshActiveSectionRef.current());
+  }, [deepLinkRestoreReady]);
 
   useEffect(() => {
     let scrollFrame = 0;
@@ -85,6 +116,10 @@ export default function SiteNav({ items }: SiteNavProps) {
 
       if (closest.id) {
         const initialSectionId = initialSectionIdRef.current;
+        if (initialSectionId && !deepLinkRestoreReady) {
+          commitActiveId(initialSectionId, false);
+          return;
+        }
         if (initialSectionId && closest.id !== initialSectionId) {
           commitActiveId(initialSectionId, false);
           return;
@@ -112,27 +147,6 @@ export default function SiteNav({ items }: SiteNavProps) {
     measureSections();
     updateActiveSection(false);
 
-    const finishInitialSectionRestore = () => {
-      requestAnimationFrame(() => {
-        const initialSectionId = initialSectionIdRef.current;
-        if (!initialSectionId) return;
-
-        const section = document.getElementById(initialSectionId);
-        const focusLine = window.innerHeight * 0.34;
-        const rect = section?.getBoundingClientRect();
-        const isRestored = rect ? rect.top <= focusLine && rect.bottom >= focusLine : false;
-        if (!isRestored) section?.scrollIntoView({ block: 'start' });
-
-        initialSectionIdRef.current = null;
-        measureSections();
-        updateActiveSection(false);
-      });
-    };
-
-    if (initialSectionIdRef.current) {
-      if (document.readyState === 'complete') finishInitialSectionRestore();
-      else window.addEventListener('load', finishInitialSectionRestore, { once: true });
-    }
     const resizeObserver = new ResizeObserver(scheduleMeasure);
     resizeObserver.observe(document.body);
     sectionRangesRef.current.forEach(section => {
@@ -160,14 +174,13 @@ export default function SiteNav({ items }: SiteNavProps) {
       resizeObserver.disconnect();
       window.removeEventListener('scroll', scheduleScrollUpdate);
       window.removeEventListener('resize', scheduleMeasure);
-      window.removeEventListener('load', finishInitialSectionRestore);
       window.removeEventListener('site-section-navigation-complete', releaseForcedActive);
       refreshActiveSectionRef.current = () => undefined;
       if (navigationReleaseTimerRef.current) {
         window.clearTimeout(navigationReleaseTimerRef.current);
       }
     };
-  }, [items]);
+  }, [items, deepLinkRestoreReady]);
 
   useLayoutEffect(() => {
     const activeLink = linkRefs.current.get(activeId);
@@ -241,7 +254,7 @@ export default function SiteNav({ items }: SiteNavProps) {
       <nav className="site-nav" aria-label="Primary navigation">
         <div className="site-nav__shell">
           <a className="site-nav__brand" href="/" aria-label="Refresh page">
-            <BrandMark className="site-nav__brand-mark" />
+            <PersonalLogo className="site-nav__brand-mark" />
           </a>
           <div ref={trackRef} className="site-nav__track">
             <span

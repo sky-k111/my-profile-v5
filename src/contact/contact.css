@@ -54,6 +54,7 @@
 }
 
 .contact__identity,
+.contact__section-index,
 .contact__availability,
 .contact__headline-wrap,
 .contact__panel,
@@ -76,17 +77,38 @@
 }
 
 .contact__identity-mark {
-  width: 34px;
-  height: 34px;
-  --brand-accent: var(--contact-accent);
+  flex: 0 0 auto;
+  width: 48px;
 }
 
-.contact__identity > span {
+.contact__identity-name {
   display: grid;
   font-size: clamp(.72rem, .75vw, .88rem);
   font-weight: 840;
   letter-spacing: .08em;
   line-height: .82;
+}
+
+.contact__section-index {
+  z-index: 8;
+  top: clamp(86px, 8.4vw, 126px);
+  left: clamp(20px, 2.4vw, 38px);
+  margin: 0;
+  color: var(--contact-accent);
+  font-size: clamp(.66rem, .72vw, .78rem);
+  font-weight: 800;
+  letter-spacing: .14em;
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(-9px);
+  transition:
+    opacity 520ms cubic-bezier(.22, 1, .36, 1),
+    transform 520ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.contact[data-contact-visible] .contact__section-index {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .contact__availability {
@@ -514,12 +536,10 @@
 }
 
 .contact-tab__mark {
-  width: 27px;
-  height: 27px;
-  --brand-accent: currentColor;
+  width: 29px;
 }
 
-.contact-tab > span {
+.contact-tab__label {
   align-self: center;
   font-family: 'Noto Sans SC Variable', sans-serif;
   font-size: .64rem;
@@ -548,6 +568,7 @@
   }
 
   .contact__identity,
+  .contact__section-index,
   .contact__availability,
   .contact__headline-wrap,
   .contact__panel,
@@ -569,6 +590,15 @@
     position: absolute;
     top: 22px;
     left: 22px;
+  }
+
+  .contact__identity-mark {
+    width: 40px;
+  }
+
+  .contact__section-index {
+    order: 0;
+    margin: 22px 0 30px;
   }
 
   .contact__headline-wrap {
@@ -718,11 +748,10 @@
   }
 
   .contact-tab__mark {
-    width: 23px;
-    height: 23px;
+    width: 24px;
   }
 
-  .contact-tab > span {
+  .contact-tab__label {
     font-size: .54rem;
   }
 }

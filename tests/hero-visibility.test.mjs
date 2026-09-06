@@ -65,6 +65,18 @@ test('the prewarmed Hero backdrop stays paused until the Hero becomes visible', 
   assert.match(hero, /<PixelBlast[\s\S]*?active=\{heroVisible\}/);
   assert.match(pixelBlast, /active\?: boolean/);
   assert.match(pixelBlast, /if \(!activeRef\.current \|\| framePending\) return/);
-  assert.match(pixelBlast, /if \(active\) t\.start\?\.\(\)/);
-  assert.match(pixelBlast, /else t\.stop\?\.\(\)/);
+  assert.match(pixelBlast, /if \(active\) \{[\s\S]*?t\.start\?\.\(\)/);
+  assert.match(pixelBlast, /else \{\s*t\.stop\?\.\(\)/);
+});
+
+test('Hero particles flicker into place instead of appearing fully formed', async () => {
+  const pixelBlast = await readFile(new URL('../src/components/PixelBlast.tsx', import.meta.url), 'utf8');
+
+  assert.match(pixelBlast, /uniform float uReveal/);
+  assert.match(pixelBlast, /const PIXEL_REVEAL_DURATION_MS = 1_900/);
+  assert.match(pixelBlast, /float revealRank = hash11/);
+  assert.match(pixelBlast, /mix\(revealPulse, 1\.0, revealSettled\)/);
+  assert.match(pixelBlast, /uReveal:\s*\{ value: 0 \}/);
+  assert.match(pixelBlast, /revealStartedAt = performance\.now\(\)/);
+  assert.match(pixelBlast, /revealElapsed \/ PIXEL_REVEAL_DURATION_MS/);
 });

@@ -67,9 +67,7 @@
 }
 
 .site-nav__brand-mark {
-  width: 21px;
-  height: 21px;
-  --brand-accent: #c64a36;
+  width: 25px;
 }
 
 .site-nav__brand:hover,

@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import TextType from './TextType';
 import TextPressure from './TextPressure';
 import PortraitReveal from './PortraitReveal';
 import Signature from './Signature';
@@ -35,6 +34,7 @@ export default function Hero({ active = true, effectsActive = active }: HeroProp
   return (
     <section ref={heroRef} id="home" className="hero" data-active={heroVisible ? 'true' : 'false'} aria-labelledby="hero-title">
       <SectionMarks />
+      <p className="hero-section-index">01 / HOME</p>
       <div className="pixel-blast-stage" aria-hidden="true">
         {heroEffectsVisible && (
           <Suspense fallback={null}>
@@ -49,18 +49,6 @@ export default function Hero({ active = true, effectsActive = active }: HeroProp
       </div>
 
       <div className="hero-copy">
-        <div className="hero-intro">
-          <p className="hero-section-index">01 / HOME</p>
-          <div className="eyebrow">
-            {heroVisible ? <TextType
-              text="> ZJGSU · COMPUTER SCIENCE · AIBUILDER"
-              loop={false}
-              showCursor={false}
-              typingSpeed={35}
-              initialDelay={300}
-            /> : null}
-          </div>
-        </div>
         <div className="hero-footer">
           <p className="hero-note" aria-label="在算法与直觉之间，持续向前。">
             <span className="hero-note__line">在算法与直觉之间</span>
@@ -76,10 +64,6 @@ export default function Hero({ active = true, effectsActive = active }: HeroProp
 
       <PortraitReveal active={heroVisible} />
       <HeroScrollIndicator />
-      <p className="hero-edition" aria-label="Portfolio 2026, Hangzhou">
-        <span>PORTFOLIO / 2026</span>
-        <span>HANGZHOU · CN</span>
-      </p>
     </section>
   );
 }

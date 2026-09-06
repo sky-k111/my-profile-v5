@@ -31,6 +31,10 @@ test('section URLs preserve non-Hero refresh destinations without adding history
   assert.match(nav, /sectionRangesRef/);
   assert.match(nav, /scrollRangeRef/);
   assert.match(nav, /initialSectionIdRef/);
+  assert.match(nav, /deepLinkRestoreReady/);
+  assert.match(nav, /if \(!deepLinkRestoreReady\) return/);
+  assert.match(nav, /initialSectionId && !deepLinkRestoreReady/);
+  assert.match(nav, /initialSectionId === 'projects'[\s\S]*site-section-navigation[\s\S]*scrollIntoView/);
   assert.match(nav, /updateActiveSection\(false\)/);
   assert.match(nav, /distance <= closest\.distance/);
   assert.match(nav, /syncSectionUrl\(id\)/);
@@ -39,7 +43,7 @@ test('section URLs preserve non-Hero refresh destinations without adding history
 test('App mounts the persistent navigation outside its single main landmark', async () => {
   const app = await readFile(new URL('../src/App.tsx', import.meta.url), 'utf8');
 
-  assert.match(app, /<SiteNav items=\{SITE_NAV_ITEMS\}\s*\/>[\s\S]*?<main>/);
+  assert.match(app, /<SiteNav items=\{SITE_NAV_ITEMS\} deepLinkRestoreReady=\{heroEffectsPrepared\}\s*\/>[\s\S]*?<main>/);
 });
 
 test('section navigation keeps About scroll-driven while Projects retain their own entry event', async () => {

@@ -199,6 +199,7 @@ uniform float uRippleSpeed;
 uniform float uRippleThickness;
 uniform float uRippleIntensity;
 uniform float uEdgeFade;
+uniform float uReveal;
 
 uniform int   uShapeType;
 const int SHAPE_SQUARE   = 0;
@@ -338,6 +339,17 @@ void main(){
     M *= fade;
   }
 
+  float revealRank = hash11(dot(cellId, vec2(67.17, 9.41)));
+  float revealPhase = clamp((uReveal * 1.35 - revealRank) / 0.35, 0.0, 1.0);
+  float revealPulse = step(
+    0.44,
+    hash11(floor(uTime * 22.0) + revealRank * 197.0)
+  );
+  float revealSettled = smoothstep(0.58, 1.0, revealPhase);
+  float revealMask = smoothstep(0.0, 0.16, revealPhase)
+    * mix(revealPulse, 1.0, revealSettled);
+  M *= revealMask;
+
   vec3 color = uColor;
 
   // sRGB gamma correction - convert linear to sRGB for accurate color output
@@ -352,6 +364,7 @@ void main(){
 `;
 
 const MAX_CLICKS = 10;
+const PIXEL_REVEAL_DURATION_MS = 1_900;
 
 const PixelBlast: React.FC<PixelBlastProps> = ({
   active = true,
@@ -407,11 +420,13 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
       uRippleThickness: { value: number };
       uRippleIntensity: { value: number };
       uEdgeFade: { value: number };
+      uReveal: { value: number };
     };
     resizeObserver?: ResizeObserver;
     raf?: number;
     quad?: THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>;
     timeOffset?: number;
+    revealStartedAt?: number;
     composer?: EffectComposer;
     touch?: ReturnType<typeof createTouchTexture>;
     liquidEffect?: Effect;
@@ -478,7 +493,8 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
         uRippleSpeed: { value: rippleSpeed },
         uRippleThickness: { value: rippleThickness },
         uRippleIntensity: { value: rippleIntensityScale },
-        uEdgeFade: { value: edgeFade }
+        uEdgeFade: { value: edgeFade },
+        uReveal: { value: 0 }
       };
       const scene = new THREE.Scene();
       const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -608,6 +624,10 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
           return;
         }
         uniforms.uTime.value = timeOffset + timer.getElapsed() * speedRef.current;
+        if (typeof threeRef.current?.revealStartedAt === 'number') {
+          const revealElapsed = Math.max(0, timestamp - threeRef.current.revealStartedAt);
+          uniforms.uReveal.value = Math.min(1, revealElapsed / PIXEL_REVEAL_DURATION_MS);
+        }
         if (liquidEffect) {
           const liqEffect = liquidEffect as Effect & { uniforms: Map<string, THREE.Uniform> };
           const timeUniform = liqEffect.uniforms.get('uTime');
@@ -719,8 +739,15 @@ const PixelBlast: React.FC<PixelBlastProps> = ({
     const t = threeRef.current;
     if (!t) return;
 
-    if (active) t.start?.();
-    else t.stop?.();
+    if (active) {
+      if (t.uniforms.uReveal.value < 1) {
+        t.uniforms.uReveal.value = 0;
+        t.revealStartedAt = performance.now();
+      }
+      t.start?.();
+    } else {
+      t.stop?.();
+    }
   }, [active]);
 
   return (

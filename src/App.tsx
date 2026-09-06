@@ -1,6 +1,7 @@
 import { useCallback, useLayoutEffect, useState } from 'react';
 import AboutSection from './about/AboutSection';
 import Hero from './components/Hero';
+import HeroMicroChrome from './components/HeroMicroChrome';
 import OpeningSequence from './components/OpeningSequence';
 import SiteNav from './components/SiteNav';
 import ContactSection from './contact/ContactSection';
@@ -13,7 +14,14 @@ export default function App() {
   const [heroEffectsPrepared, setHeroEffectsPrepared] = useState(false);
 
   const prepareHeroEffects = useCallback(() => setHeroEffectsPrepared(true), []);
-  const completeOpening = useCallback(() => setOpeningComplete(true), []);
+  const completeOpening = useCallback(() => {
+    setOpeningComplete(true);
+
+    if (document.documentElement.dataset.portfolioRefreshReset === 'home') {
+      window.history.scrollRestoration = 'auto';
+      delete document.documentElement.dataset.portfolioRefreshReset;
+    }
+  }, []);
 
   useLayoutEffect(() => {
     document.documentElement.removeAttribute('data-portfolio-booting');
@@ -27,10 +35,13 @@ export default function App() {
           onComplete={completeOpening}
         />
       )}
-      <SiteNav items={SITE_NAV_ITEMS} />
+      <SiteNav items={SITE_NAV_ITEMS} deepLinkRestoreReady={heroEffectsPrepared} />
       <ContactTab visible={openingComplete} />
       <main>
-        <Hero active={openingComplete} effectsActive={openingComplete || heroEffectsPrepared} />
+        <div className="hero-shell">
+          <HeroMicroChrome openingActive={!openingComplete} />
+          <Hero active={openingComplete} effectsActive={openingComplete || heroEffectsPrepared} />
+        </div>
         <AboutSection />
         <ProjectsTransition />
         <ContactSection />

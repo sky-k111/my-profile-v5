@@ -2,13 +2,16 @@ import { useEffect, useRef } from 'react';
 
 const FRAME_INTERVAL = 1000 / 12;
 const SAMPLE_SCALE = .58;
-const SNOW_FRAME_COUNT = 3;
 const MAX_SAMPLE_PIXELS = 900_000;
 const MIN_LARGE_GRAINS = 4;
 const LARGE_GRAIN_VARIATION = 9;
 
 function nextRandom(seed: number) {
-  return (seed * 1664525 + 1013904223) >>> 0;
+  // Mix all bits: the previous generator's low byte repeated every 256 pixels.
+  seed ^= seed << 13;
+  seed ^= seed >>> 17;
+  seed ^= seed << 5;
+  return seed >>> 0;
 }
 
 export default function ProjectsSnowField() {
@@ -24,17 +27,13 @@ export default function ProjectsSnowField() {
     let raf: number | null = null;
     let visible = false;
     let reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let randomSeed = 814729;
-    let snowFrames: HTMLCanvasElement[] = [];
-    let snowFrameIndex = 0;
+    let randomSeed = (Math.random() * 0x100000000) >>> 0 || 1;
+    let image: ImageData | undefined;
 
     const createSnowFrame = (sampleWidth: number, sampleHeight: number) => {
-      const frame = document.createElement('canvas');
-      frame.width = sampleWidth;
-      frame.height = sampleHeight;
-      const frameContext = frame.getContext('2d', { alpha: true });
-      if (!frameContext) return frame;
-      const image = frameContext.createImageData(sampleWidth, sampleHeight);
+      if (!image || image.width !== sampleWidth || image.height !== sampleHeight) {
+        image = context.createImageData(sampleWidth, sampleHeight);
+      }
 
       for (let index = 0; index < image.data.length; index += 4) {
         randomSeed = nextRandom(randomSeed);
@@ -76,16 +75,13 @@ export default function ProjectsSnowField() {
         }
       }
 
-      frameContext.putImageData(image, 0, 0);
-      return frame;
+      return image;
     };
 
     const paintSnow = () => {
-      const frame = snowFrames[snowFrameIndex];
-      if (!frame) return;
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(frame, 0, 0);
-      snowFrameIndex = (snowFrameIndex + 1) % snowFrames.length;
+      // Reuse the pixel buffer, but generate fresh small and large grains.
+      const frame = createSnowFrame(canvas.width, canvas.height);
+      context.putImageData(frame, 0, 0);
     };
 
     const resize = () => {
@@ -96,11 +92,6 @@ export default function ProjectsSnowField() {
       canvas.width = Math.max(1, Math.round(rect.width * density));
       canvas.height = Math.max(1, Math.round(rect.height * density));
       context.imageSmoothingEnabled = false;
-      snowFrames = Array.from(
-        { length: SNOW_FRAME_COUNT },
-        () => createSnowFrame(canvas.width, canvas.height),
-      );
-      snowFrameIndex = 0;
       paintSnow();
     };
 

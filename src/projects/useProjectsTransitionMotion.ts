@@ -120,7 +120,11 @@ export function useProjectsTransitionMotion(rootRef: RefObject<HTMLElement | nul
             start: 'top top',
             end: 'bottom bottom',
             scrub: 0.28,
-            invalidateOnRefresh: true,
+            // The initial poses are set outside this timeline. Re-reading
+            // tween starts during a mid-scroll refresh captures animated poses
+            // and corrupts subsequent navigation replays. ScrollTrigger still
+            // refreshes its start/end geometry without invalidating tweens.
+            invalidateOnRefresh: false,
           },
         });
         const trigger = timeline.scrollTrigger;

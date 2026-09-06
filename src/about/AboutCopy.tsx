@@ -1,4 +1,5 @@
 import { ABOUT_CONTENT } from './about-content';
+import AboutScrollCue from './AboutScrollCue';
 
 export function IdentityCopy() {
   return (
@@ -6,11 +7,9 @@ export function IdentityCopy() {
       <p className="about-kicker" lang="en">02 / ABOUT</p>
       <h2 id="about-title" className="about-display" lang="en">ABOUT</h2>
       <p className="about-name" lang="en">{ABOUT_CONTENT.nameEn}</p>
-      <p className="about-name-zh" lang="zh-CN">{ABOUT_CONTENT.nameZh}</p>
       <p className="about-identity" lang="en">{ABOUT_CONTENT.identityEn}</p>
       <p className="about-identity-zh" lang="zh-CN">{ABOUT_CONTENT.identityZh}</p>
-      <p className="about-meta" lang="zh-CN">{ABOUT_CONTENT.metadataZh}</p>
-      <p className="about-meta" lang="en">{ABOUT_CONTENT.metadataEn}</p>
+      <AboutScrollCue />
     </header>
   );
 }
@@ -79,9 +78,15 @@ export function InterestLines() {
   return (
     <div className="about-copy about-interests">
       {ABOUT_CONTENT.interests.map(interest => (
-        <article className="about-interest" key={interest.title}>
-          <h3 lang="en">{interest.title}</h3>
-          <p lang="zh-CN">{interest.copyZh}</p>
+        <article className="about-interest" key={interest.index}>
+          <span className="about-interest__rule" aria-hidden="true" />
+          <span className="about-interest__index" aria-hidden="true">{interest.index}</span>
+          <h3 className="about-interest__heading" lang="en">
+            <span>{interest.title}</span>
+            <em>/ {interest.accent}</em>
+          </h3>
+          <p className="about-interest__copy" lang="zh-CN">{interest.copyZh}</p>
+          <span className="about-interest__meta" aria-hidden="true">{interest.meta}</span>
         </article>
       ))}
     </div>

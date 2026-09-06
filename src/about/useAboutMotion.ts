@@ -257,6 +257,18 @@ export function useAboutMotion(rootRef: RefObject<HTMLElement | null>) {
             .to('[data-chapter="growth"] .about-copy', { opacity: 0, duration: 0.05 }, 0.74)
             .to(EXPANSION_PHOTOS, { autoAlpha: 0, duration: 0.04 }, 0.75)
             .to('[data-chapter="momentum"] .about-copy', { opacity: 1, duration: 0.05 }, 0.76)
+            .fromTo(
+              '.about-interest__rule',
+              { scaleX: 0 },
+              { scaleX: 1, duration: 0.065, stagger: 0.012 },
+              0.755,
+            )
+            .fromTo(
+              '.about-interest__index, .about-interest__heading, .about-interest__copy, .about-interest__meta',
+              { y: 10, autoAlpha: 0 },
+              { y: 0, autoAlpha: 1, duration: 0.055, stagger: 0.004 },
+              0.765,
+            )
             .fromTo('[data-photo="photo-09"]', { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.04 }, 0.77)
             .fromTo(
               '[data-photo="photo-09"] .about-photo__media',

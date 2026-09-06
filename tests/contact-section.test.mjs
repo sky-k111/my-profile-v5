@@ -23,6 +23,9 @@ test('Contact closes the portfolio after Projects with the approved personal lin
   assert.match(contactSource, /name: 'Qwen', icon: '\/ai-brands\/qwen\.png'/);
   assert.match(contactSource, /\/ai-brands\/doubao\.png/);
   assert.doesNotMatch(contactSource, /通义千问/);
+  assert.match(contactSource, /import PersonalLogo from '@\/components\/PersonalLogo'/);
+  assert.match(contactSource, /<PersonalLogo className="contact__identity-mark"\s*\/>/);
+  assert.doesNotMatch(contactSource, /BrandMark/);
 });
 
 test('Contact uses a real transparent racing-suit cutout and a visibility-bounded marquee', () => {
@@ -35,6 +38,10 @@ test('Contact uses a real transparent racing-suit cutout and a visibility-bounde
 
 test('The fixed contact tab changes into a reduced-motion-aware back-to-top control', () => {
   assert.match(appSource, /<ContactTab visible=\{openingComplete\}/);
+  assert.match(tabSource, /import PersonalLogo from '@\/components\/PersonalLogo'/);
+  assert.match(tabSource, /<PersonalLogo className="contact-tab__mark"\s*\/>/);
+  assert.match(tabSource, /<span className="contact-tab__label">\{label\}<\/span>/);
+  assert.doesNotMatch(tabSource, /BrandMark/);
   assert.match(tabSource, /contactActive \? 'BACK TO TOP' : 'CONTACT'/);
   assert.match(tabSource, /prefers-reduced-motion:\s*reduce/);
 });

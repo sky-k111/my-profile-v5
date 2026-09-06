@@ -28,13 +28,25 @@ test('each major chapter repeats the opening registration-mark language', async 
   for (const source of [hero, about, projects, contact]) assert.match(source, /<SectionMarks\s*\/>/);
 });
 
-test('the finishing details include a Home edition plate, selection color, and project micro status', async () => {
+test('the portfolio chapter numbers run continuously from Home through Contact', async () => {
   const hero = await readFile(new URL('../src/components/Hero.tsx', import.meta.url), 'utf8');
+  const about = await readFile(new URL('../src/about/AboutCopy.tsx', import.meta.url), 'utf8');
+  const projects = await readFile(new URL('../src/projects/ProjectsTransition.tsx', import.meta.url), 'utf8');
+  const contact = await readFile(new URL('../src/contact/ContactSection.tsx', import.meta.url), 'utf8');
+
+  assert.match(hero, /01 \/ HOME/);
+  assert.match(about, /02 \/ ABOUT/);
+  assert.match(projects, /03 \/ PROLOGUE/);
+  assert.match(contact, /04 \/ CONTACT/);
+});
+
+test('the finishing details include a Home edition plate, selection color, and project micro status', async () => {
+  const heroChrome = await readFile(new URL('../src/components/HeroMicroChrome.tsx', import.meta.url), 'utf8');
   const globalCss = await readFile(new URL('../src/index.css', import.meta.url), 'utf8');
   const directory = await readFile(new URL('../src/projects/ProjectDirectory.tsx', import.meta.url), 'utf8');
 
-  assert.match(hero, /PORTFOLIO \/ 2026/);
-  assert.match(hero, /HANGZHOU · CN/);
+  assert.match(heroChrome, /PORTFOLIO 2026/);
+  assert.match(heroChrome, /HANGZHOU \/ UTC\+08/);
   assert.match(globalCss, /::selection\s*\{[^}]*background:\s*#8f1f2a/);
   assert.match(directory, /projects-transition__project-name-status/);
   assert.match(directory, /isSelected \? 'SELECTED' : 'PREVIEW'/);
