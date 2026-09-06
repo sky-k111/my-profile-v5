@@ -14,8 +14,8 @@ test('The projects transition overlays the About exit with a masked type assembl
   assert.match(transition, /data-transition-letter/);
   assert.match(transition, /ProjectsCanvasField/);
   assert.match(transition, /Below is a selection of work and experiments/);
-  assert.match(transition, /我把一些走过的路留在这里/);
-  assert.match(transition, /经过反复的构思、屏幕前的深夜/);
+  assert.match(transition, /这些作品散落在不同的时间里/);
+  assert.match(transition, /我仍沿着那些未完的线索，继续向前/);
   assert.match(transition, /projects-transition__statement-language--zh" lang="zh-CN"/);
   assert.match(transition, /projects-transition__statement-paragraph" data-transition-copy/);
   assert.match(transition, /03 \/ PROLOGUE/);

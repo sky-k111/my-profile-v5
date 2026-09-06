@@ -58,7 +58,9 @@ test('project hover selection persists until a different project is selected', a
   const css = await readFile(new URL('../src/projects/projects-transition.css', import.meta.url), 'utf8');
 
   assert.doesNotMatch(directory, /onPointerLeave=\{\(\) => setHoveredId\(null\)\}/);
-  assert.doesNotMatch(directory, /setHoveredId\(null\)/);
+  assert.match(directory, /projects-selected-works-entry/);
+  assert.match(directory, /setActiveId\('homepage'\)/);
+  assert.match(directory, /setHoveredId\(null\)/);
   assert.match(directory, /setHoveredId\(project\.id\)/);
   assert.match(css, /projects-transition__project-name-main[^}]*white-space:\s*nowrap/);
 });

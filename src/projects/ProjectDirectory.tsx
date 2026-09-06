@@ -342,6 +342,22 @@ export default function ProjectDirectory() {
     }, PROJECT_SWITCH_LOADING_MS);
   }, [activeId]);
 
+  const resetProjectSelection = useCallback(() => {
+    window.clearTimeout(switchTimeoutRef.current);
+    window.clearTimeout(revealTimeoutRef.current);
+    pendingIdRef.current = null;
+    pointerPositionRef.current = null;
+    setActiveId('homepage');
+    setHoveredId(null);
+    setPendingId(null);
+    setRevealingId(null);
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('projects-selected-works-entry', resetProjectSelection);
+    return () => window.removeEventListener('projects-selected-works-entry', resetProjectSelection);
+  }, [resetProjectSelection]);
+
   useEffect(() => () => {
     window.clearTimeout(switchTimeoutRef.current);
     window.clearTimeout(revealTimeoutRef.current);
@@ -382,15 +398,6 @@ export default function ProjectDirectory() {
                 data-project-id={project.id}
                 data-project-emphasis={emphasis}
                 type="button"
-                onPointerEnter={event => {
-                  pointerPositionRef.current = { x: event.clientX, y: event.clientY };
-                }}
-                onPointerMove={event => {
-                  const previous = pointerPositionRef.current;
-                  pointerPositionRef.current = { x: event.clientX, y: event.clientY };
-                  if (event.pointerType !== 'touch' && previous &&
-                    Math.hypot(event.clientX - previous.x, event.clientY - previous.y) > 0) selectProject();
-                }}
                 onFocus={event => {
                   if (event.currentTarget.matches(':focus-visible')) selectProject();
                 }}
@@ -400,7 +407,18 @@ export default function ProjectDirectory() {
                 }}
                 aria-current={isActive ? 'true' : undefined}
               >
-                <span className="projects-transition__project-name-main">
+                <span
+                  className="projects-transition__project-name-main"
+                  onPointerEnter={event => {
+                    pointerPositionRef.current = { x: event.clientX, y: event.clientY };
+                  }}
+                  onPointerMove={event => {
+                    const previous = pointerPositionRef.current;
+                    pointerPositionRef.current = { x: event.clientX, y: event.clientY };
+                    if (event.pointerType !== 'touch' && previous &&
+                      Math.hypot(event.clientX - previous.x, event.clientY - previous.y) > 0) selectProject();
+                  }}
+                >
                   <span>{project.number}.</span> {project.title}
                 </span>
                 <small className="projects-transition__project-name-status" aria-hidden="true">
