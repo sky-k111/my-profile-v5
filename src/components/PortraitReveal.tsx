@@ -8,6 +8,7 @@ import {
 } from '@/lib/reveal-geometry';
 import { getRevealOpacity } from '@/lib/reveal-timing';
 import { PRESSURE_NAME } from '@/lib/name';
+import { preparedImage, prepareImage } from '@/lib/prepared-images';
 
 const BRUSH_RADIUS = 54;
 const BRUSH_BLEED = 28;
@@ -24,15 +25,6 @@ interface Point {
 
 interface InkStamp extends Point {
   createdAt: number;
-}
-
-function loadImage(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
 }
 
 function resizeCanvas(
@@ -151,6 +143,7 @@ export default function PortraitReveal({ active = true }: { active?: boolean }) 
     let inkStamps: InkStamp[] = [];
     let autoBrushPoints: Point[] = [];
     let cancelled = false;
+    let ready = false;
 
     function stagePoint(e: PointerEvent): Point {
       const rect = stage!.getBoundingClientRect();
@@ -158,6 +151,7 @@ export default function PortraitReveal({ active = true }: { active?: boolean }) 
     }
 
     function setupCanvases() {
+      if (cancelled || !suitImg || !baseImg!.naturalWidth) return;
       const rect = baseImg!.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       canvasW = rect.width;
@@ -177,6 +171,8 @@ export default function PortraitReveal({ active = true }: { active?: boolean }) 
       lastPointer = null;
       clearReveal();
       renderReveal();
+      ready = canvasW > 0 && canvasH > 0;
+      stage!.dataset.revealReady = String(ready);
     }
 
     function renderReveal() {
@@ -267,6 +263,7 @@ export default function PortraitReveal({ active = true }: { active?: boolean }) 
     }
 
     function onPointerMove(e: PointerEvent) {
+      if (!ready || cancelled) return;
       resetAutoStroke();
       addBrushStroke(stagePoint(e));
       startInkAnimation();
@@ -278,6 +275,7 @@ export default function PortraitReveal({ active = true }: { active?: boolean }) 
     let autoStrokeRaf: number | null = null;
 
     function resetAutoStroke() {
+      if (!ready || cancelled) return;
       clearTimeout(autoStrokeTimer);
       if (autoStrokeRaf) { cancelAnimationFrame(autoStrokeRaf); autoStrokeRaf = null; }
       autoBrushPoints = [];
@@ -354,26 +352,21 @@ export default function PortraitReveal({ active = true }: { active?: boolean }) 
 
     async function init() {
       try {
-        suitImg = await loadImage('/racing-suit.png');
+        const cachedSuit = preparedImage('/racing-suit.png');
+        suitImg = cachedSuit ?? await prepareImage('/racing-suit.png');
+        if (!baseImg!.complete || !baseImg!.naturalWidth) await baseImg!.decode();
       } catch {
         return; // image failed, nothing to reveal
       }
       if (cancelled) return;
-      if (!baseImg!.complete) {
-        await new Promise((resolve) => {
-          baseImg!.addEventListener('load', resolve, { once: true });
-          baseImg!.addEventListener('error', resolve, { once: true });
-        });
-        if (cancelled || !baseImg!.complete) return; // image errored or effect stopped
-      }
       setupCanvases();
+      stage!.addEventListener('pointermove', onPointerMove);
+      stage!.addEventListener('pointerenter', onPointerMove);
       resetAutoStroke();
     }
 
     init().catch(() => {});
 
-    stage.addEventListener('pointermove', onPointerMove);
-    stage.addEventListener('pointerenter', resetAutoStroke);
     stage.addEventListener('pointerleave', finishStroke);
     stage.addEventListener('pointerup', finishStroke);
     stage.addEventListener('pointercancel', finishStroke);
@@ -381,8 +374,10 @@ export default function PortraitReveal({ active = true }: { active?: boolean }) 
 
     return () => {
       cancelled = true;
+      ready = false;
+      delete stage.dataset.revealReady;
       stage.removeEventListener('pointermove', onPointerMove);
-      stage.removeEventListener('pointerenter', resetAutoStroke);
+      stage.removeEventListener('pointerenter', onPointerMove);
       stage.removeEventListener('pointerleave', finishStroke);
       stage.removeEventListener('pointerup', finishStroke);
       stage.removeEventListener('pointercancel', finishStroke);

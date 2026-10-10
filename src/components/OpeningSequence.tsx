@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useRef, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import {
   OPENING_LABEL,
   OPENING_SEQUENCE_DURATION_MS,
   resolveOpeningFrame,
   resolveOpeningGlyphOpacity,
-  resolveOpeningPlayback,
 } from '@/lib/opening-sequence';
+import { prepareStartupResources, startupProgress, type StartupProgress } from '@/lib/startup-resources';
+import startupCacheKey from 'virtual:startup-cache-key';
 import PersonalLogo from './PersonalLogo';
 import './OpeningSequence.css';
 
@@ -45,6 +46,20 @@ function GlyphShape({ letter }: { letter: string }) {
 }
 
 export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: OpeningSequenceProps) {
+  const progressRef = useRef<StartupProgress>({ loaded: 0, total: 0, ready: false, error: null });
+  const restoredFromCacheRef = useRef(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const statusRef = useRef<HTMLParagraphElement | null>(null);
+  const loadResources = useCallback(() => {
+    setLoadError(null);
+    void prepareStartupResources((state) => {
+      progressRef.current = state;
+      setLoadError(state.error);
+    }, startupCacheKey).then(result => {
+      restoredFromCacheRef.current = result === 'cached';
+    }).catch(() => { /* The loading screen retains the error and offers retry. */ });
+  }, []);
+  useEffect(loadResources, [loadResources]);
   const completedRef = useRef(false);
   const heroEffectsPreparedRef = useRef(false);
   const rootRef = useRef<HTMLElement | null>(null);
@@ -61,22 +76,35 @@ export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: Op
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const playback = resolveOpeningPlayback(reducedMotion, window.location.hash);
-
-    if (!playback.shouldPlay) {
-      onPrepareHeroEffects();
-      finishOpening();
-      return undefined;
-    }
-
     document.documentElement.dataset.portfolioOpening = 'active';
-    const fallbackTimer = window.setTimeout(finishOpening, playback.durationMs + 500);
     const startedAt = performance.now();
     let animationFrame = 0;
+    let readyAt: number | null = null;
 
     const renderFrame = (now: number) => {
-      const elapsed = Math.min(now - startedAt, playback.durationMs);
-      const frame = resolveOpeningFrame(elapsed);
+      const state = progressRef.current;
+      if (state.ready && restoredFromCacheRef.current) {
+        onPrepareHeroEffects();
+        finishOpening();
+        return;
+      }
+      if (state.ready && readyAt === null) {
+        readyAt = now;
+        heroEffectsPreparedRef.current = true;
+        onPrepareHeroEffects();
+      }
+      // Hold the fully visible identity until real resources are ready.
+      const elapsed = readyAt === null
+        ? Math.min(now - startedAt, 3600)
+        : Math.min(3600 + now - readyAt, OPENING_SEQUENCE_DURATION_MS);
+      const visualTime = reducedMotion ? 3600 : elapsed;
+      rootRef.current?.toggleAttribute('data-waiting', !state.ready && !state.error && !document.hidden && now - startedAt >= 1600);
+      const frame = resolveOpeningFrame(visualTime, startupProgress(state.loaded, state.total, state.ready));
+      if (statusRef.current) {
+        statusRef.current.textContent = state.ready ? 'READY' : state.error ? '' :
+          state.total ? `LOADING ASSETS · ${(state.loaded / 1048576).toFixed(1)} / ${(state.total / 1048576).toFixed(1)} MB` : 'PREPARING ASSETS';
+      }
+      counterRef.current?.setAttribute('aria-valuenow', String(frame.counter));
 
       if (frame.prepareHeroEffects && !heroEffectsPreparedRef.current) {
         heroEffectsPreparedRef.current = true;
@@ -101,10 +129,10 @@ export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: Op
 
       glyphRefs.current.forEach((glyph, index) => {
         if (!glyph) return;
-        glyph.style.opacity = `${resolveOpeningGlyphOpacity(elapsed, index)}`;
+        glyph.style.opacity = `${resolveOpeningGlyphOpacity(visualTime, index)}`;
       });
 
-      if (elapsed < playback.durationMs) {
+      if (readyAt === null || (reducedMotion ? now - readyAt < 500 : elapsed < OPENING_SEQUENCE_DURATION_MS)) {
         animationFrame = window.requestAnimationFrame(renderFrame);
       } else {
         finishOpening();
@@ -115,7 +143,6 @@ export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: Op
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
-      window.clearTimeout(fallbackTimer);
       delete document.documentElement.dataset.portfolioOpening;
     };
   }, [finishOpening, onPrepareHeroEffects]);
@@ -125,7 +152,7 @@ export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: Op
       ref={rootRef}
       className="opening-sequence"
       style={{ '--opening-duration': `${OPENING_SEQUENCE_DURATION_MS}ms` } as CSSProperties}
-      aria-hidden="true"
+      aria-label="正在加载网站资源"
     >
       <div className="opening-sequence__curtain">
         <div className="opening-sequence__panel opening-sequence__panel--top" />
@@ -158,6 +185,17 @@ export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: Op
                 })}
               </span>
             ))}
+            <span className="opening-sequence__name-sweep" aria-hidden="true">
+              {openingWords.map(word => (
+                <span className="opening-sequence__word" key={word}>
+                  {word.split('').map((letter, index) => (
+                    <svg className="opening-sequence__glyph" viewBox="0 0 64 96" key={`${letter}-${index}`}>
+                      <GlyphShape letter={letter} />
+                    </svg>
+                  ))}
+                </span>
+              ))}
+            </span>
           </h1>
         </div>
 
@@ -165,9 +203,13 @@ export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: Op
           <PersonalLogo className="opening-sequence__brand-logo" />
         </div>
 
-        <span ref={counterRef} className="opening-sequence__counter">0</span>
+        <span ref={counterRef} className="opening-sequence__counter" role="progressbar" aria-label="资源加载进度" aria-valuemin={0} aria-valuemax={100}>0</span>
       </div>
 
+      <div className="opening-sequence__status">
+        <p ref={statusRef} />
+        {loadError && <div role="alert"><p>加载暂时中断，已完成的资源会保留。</p><button type="button" onClick={loadResources}>重试加载</button></div>}
+      </div>
       <footer className="opening-sequence__footer">
         <div className="opening-sequence__rail">
           <span className="opening-sequence__rail-fill" />

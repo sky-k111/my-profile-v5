@@ -218,6 +218,8 @@ export default function ContactSection() {
           className="contact__driver"
           src="/racing-suit-cutout.png"
           alt="身穿官方人工智能品牌标识赛车服、头戴红色赛车头盔的人像"
+          loading="lazy"
+          decoding="async"
         />
 
         <a className="contact__cta" href={`mailto:${EMAIL}`}>

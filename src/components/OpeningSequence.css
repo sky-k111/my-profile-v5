@@ -305,6 +305,64 @@ html[data-portfolio-opening='active'] body {
 
 @media (prefers-reduced-motion: reduce) {
   .opening-sequence {
-    display: none;
+    --opening-counter-enter: 1;
   }
+}
+
+.opening-sequence__status {
+  position: absolute;
+  bottom: calc(clamp(96px, 13vh, 150px) + 48px);
+  left: clamp(28px, 4.6vw, 118px);
+  right: clamp(28px, 4.6vw, 118px);
+  font: 12px/1.6 'Opening Interface', sans-serif;
+  letter-spacing: .12em;
+  opacity: var(--opening-interface-opacity);
+}
+.opening-sequence__status button {
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  padding: 8px 18px;
+  cursor: pointer;
+}
+@media (max-width: 700px) {
+  .opening-sequence__status { bottom: 160px; left: 18px; right: 18px; font-size: 10px; }
+}
+.opening-sequence__label { position: relative; }
+.opening-sequence__name-sweep { display: none; }
+.opening-sequence[data-waiting] .opening-sequence__label > .opening-sequence__word { opacity: .32; }
+.opening-sequence[data-waiting] .opening-sequence__name-sweep {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: inherit;
+  pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent 37%, #000 47%, #000 53%, transparent 63%);
+  mask-size: 300% 100%;
+  mask-repeat: no-repeat;
+  animation: opening-name-scan 3.6s linear infinite;
+}
+.opening-sequence__name-sweep .opening-sequence__glyph { opacity: 1; }
+@keyframes opening-name-scan {
+  0% { mask-position: 100% 0; }
+  78%, 100% { mask-position: 0% 0; }
+}
+.opening-sequence[data-waiting] .opening-sequence__status > p::after {
+  content: ' ...';
+  display: inline-block;
+  width: 1.8em;
+  overflow: hidden;
+  white-space: pre;
+  vertical-align: bottom;
+  animation: opening-loading-dots 1.8s steps(4, end) infinite;
+}
+@keyframes opening-loading-dots {
+  from { width: 0; }
+  to { width: 1.8em; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .opening-sequence *, .opening-sequence *::after { animation: none !important; transition: none !important; }
+  .opening-sequence[data-waiting] .opening-sequence__label > .opening-sequence__word { opacity: 1; }
+  .opening-sequence[data-waiting] .opening-sequence__name-sweep { display: none; }
 }

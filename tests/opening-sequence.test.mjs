@@ -24,19 +24,15 @@ test('the opening yields only for reduced motion', () => {
   assert.equal(opening.resolveOpeningPlayback(false, '#about').shouldPlay, true);
 });
 
-test('the counter takes more than three seconds to reach 100 in measured stages', () => {
-  assert.equal(opening.resolveOpeningFrame(0).counter, 0);
-  assert.ok(opening.resolveOpeningFrame(1_000).counter >= 19);
-  assert.ok(opening.resolveOpeningFrame(1_000).counter < 36);
-  assert.ok(opening.resolveOpeningFrame(2_000).counter >= 54);
-  assert.ok(opening.resolveOpeningFrame(2_000).counter < 72);
-  assert.ok(opening.resolveOpeningFrame(3_000).counter >= 96);
-  assert.ok(opening.resolveOpeningFrame(3_000).counter < 100);
-  assert.equal(opening.resolveOpeningFrame(3_250).counter, 100);
+test('the counter follows actual resources rather than elapsed animation time', () => {
+  assert.equal(opening.resolveOpeningFrame(7200, 0).counter, 0);
+  assert.equal(opening.resolveOpeningFrame(1000, .25).counter, 25);
+  assert.equal(opening.resolveOpeningFrame(3600, .997).counter, 99);
+  assert.equal(opening.resolveOpeningFrame(3600, 1).counter, 100);
 });
 
 test('the source-informed sequence holds, clears, and opens along one diagonal', () => {
-  const hold = opening.resolveOpeningFrame(3_600);
+  const hold = opening.resolveOpeningFrame(3_600, 1);
   const clearing = opening.resolveOpeningFrame(4_800);
   const openingCurtain = opening.resolveOpeningFrame(6_500);
   const final = opening.resolveOpeningFrame(7_200);

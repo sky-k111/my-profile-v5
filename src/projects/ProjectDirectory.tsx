@@ -14,6 +14,10 @@ import {
 import DecryptedHeading from './DecryptedHeading';
 import ProjectMediaGlitch from './ProjectMediaGlitch';
 import ProjectMediaLoader from './ProjectMediaLoader';
+import ProjectFilm, { type ProjectFilmMedia } from './ProjectFilm';
+import usePreviewReadiness from './usePreviewReadiness';
+import { projectMediaSource } from './project-media-source';
+import { updateGalleryReadiness, type GalleryReadiness, type PreviewReadiness } from '../lib/preview-readiness';
 
 type Project = {
   id: 'homepage' | 'ai-name' | 'trending-digest' | 'educanvas' | 'forge-sight';
@@ -25,6 +29,9 @@ type Project = {
   stack: string[];
   notes: string[];
   mediaSrcs?: string[];
+  mediaPosters?: string[];
+  mediaAspectRatio?: number;
+  film?: ProjectFilmMedia;
 };
 
 const PROJECTS: Project[] = [
@@ -37,7 +44,7 @@ const PROJECTS: Project[] = [
     liveUrl: 'https://cyk-personal.xyz',
     stack: ['React 19', 'TypeScript', 'Vite', 'GSAP', 'Three.js'],
     notes: [
-      '它诞生在期末周密不透风的间隙里，却一路从草稿走到了真正上线——这是我第一次独立完成从视觉构思、前端开发到部署的完整闭环，如今仍运行在 cyk-personal.xyz。',
+      '它诞生在期末周密不透风的间隙里，却一路从草稿走到了真正上线——这是我第一次独立完成从视觉构思、前端开发到部署的完整闭环。',
       '现在回看，它还保留着初次创作的青涩：技术选择不够丰富，视觉语汇也显得克制甚至单一。但它像一枚起点坐标，让我第一次知道，React、TypeScript、GSAP 与 Three.js 可以被编排成一段关于自己的叙事。',
     ],
     mediaSrcs: [
@@ -95,6 +102,12 @@ const PROJECTS: Project[] = [
     title: 'EduCanvas',
     label: 'Education agent platform',
     href: 'https://github.com/Timcai06/EduCanvas',
+    film: {
+      src: '/projects/educanvas-film.mp4',
+      poster: '/projects/educanvas-film-opening.jpg',
+      durationSeconds: 125,
+      aspectRatio: 16 / 9,
+    },
     stack: ['Next.js', 'TypeScript', 'PostgreSQL', 'pgvector', 'RAG', 'Agent Runtime'],
     notes: [
       '我们的起点，是不满足于再做一个只会回答问题的机器人。我们希望一个长期个人 Agent 能真正陪伴学习：Notebook 沉淀资料与上下文，RAG 在清晰边界内寻找依据，Canvas 接住阅读、创作与互动，而可信服务则让判分、掌握度与下一步建议不被模型的想象左右。',
@@ -117,6 +130,33 @@ const PROJECTS: Project[] = [
     title: 'ForgeSight',
     label: 'Enterprise data analysis agent',
     href: 'https://github.com/sky-k111/forge-sight',
+    mediaAspectRatio: 2,
+    mediaSrcs: [
+      '/projects/forge-sight-08.mp4',
+      '/projects/forge-sight-01.mp4',
+      '/projects/forge-sight-02.mp4',
+      '/projects/forge-sight-03.mp4',
+      '/projects/forge-sight-04.mp4',
+      '/projects/forge-sight-05.mp4',
+      '/projects/forge-sight-06.mp4',
+      '/projects/forge-sight-07.mp4',
+    ],
+    mediaPosters: [
+      '/projects/forge-sight-08.jpg',
+      '/projects/forge-sight-01.jpg',
+      '/projects/forge-sight-02.jpg',
+      '/projects/forge-sight-03.jpg',
+      '/projects/forge-sight-04.jpg',
+      '/projects/forge-sight-05.jpg',
+      '/projects/forge-sight-06.jpg',
+      '/projects/forge-sight-07.jpg',
+    ],
+    film: {
+      src: '/projects/forge-sight-film.mp4',
+      poster: '/projects/forge-sight-film-opening.jpg',
+      durationSeconds: 479,
+      aspectRatio: 2,
+    },
     stack: ['React 19', 'Vite', 'Tailwind CSS', 'Recharts', 'FastAPI', 'LangGraph', 'MySQL', 'PostgreSQL'],
     notes: [
       'ForgeSight 想缩短的，是业务问题与可信答案之间那段漫长而专业的距离。使用者只需以自然语言发问，Agent 便沿着数据定位、SQL 生成、安全校验、只读执行、图表呈现与结论提炼逐层推进；每一步证据都被保留下来，让答案不仅可读，也可核对、可回溯。',
@@ -125,37 +165,79 @@ const PROJECTS: Project[] = [
   },
 ];
 
-function useVisibleVideo(videoRef: RefObject<HTMLVideoElement | null>, mediaSrc?: string) {
+function useDeferredPreview(mediaRef: RefObject<HTMLElement | null>) {
+  const [shouldLoad, setShouldLoad] = useState(false);
+  useEffect(() => {
+    const media = mediaRef.current;
+    if (!media) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setShouldLoad(true);
+      observer.disconnect();
+    }, { rootMargin: '1200px 0px' });
+    observer.observe(media.closest('.projects-transition') ?? media);
+    return () => observer.disconnect();
+  }, [mediaRef]);
+  return shouldLoad;
+}
+
+function useVisibleVideo(videoRef: RefObject<HTMLVideoElement | null>, mediaSrc: string | undefined, ready: boolean) {
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !mediaSrc || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+    let isVisible = false;
+    const syncPlayback = () => {
+      if (ready && isVisible && !document.hidden && !document.documentElement.hasAttribute('data-project-film-open')) {
+        void video.play().catch(() => undefined);
+      } else video.pause();
+    };
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) void video.play().catch(() => undefined);
-      else video.pause();
+      isVisible = entry.isIntersecting;
+      syncPlayback();
     }, { threshold: .08 });
 
     observer.observe(video);
-    return () => observer.disconnect();
-  }, [mediaSrc, videoRef]);
+    window.addEventListener('projects-film-state', syncPlayback);
+    document.addEventListener('visibilitychange', syncPlayback);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('projects-film-state', syncPlayback);
+      document.removeEventListener('visibilitychange', syncPlayback);
+      video.pause();
+    };
+  }, [mediaSrc, videoRef, ready]);
 }
 
-function ProjectMediaItem({ project, mediaSrc, index }: { project: Project; mediaSrc?: string; index: number }) {
+function ProjectMediaItem({ project, mediaSrc, index, shouldLoad, onReadinessChange }: {
+  project: Project;
+  mediaSrc?: string;
+  index: number;
+  shouldLoad: boolean;
+  onReadinessChange: (index: number, readiness: PreviewReadiness) => void;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isRolled = usesProjectMediaRoll(index);
-  useVisibleVideo(videoRef, mediaSrc);
+  const shouldFetch = shouldLoad;
+  const deferredSrc = shouldFetch && mediaSrc ? projectMediaSource(mediaSrc) : undefined;
+  const ready = usePreviewReadiness(videoRef, deferredSrc);
+  useVisibleVideo(videoRef, deferredSrc, ready);
+  useEffect(() => {
+    onReadinessChange(index, { ready: !mediaSrc || ready });
+  }, [index, ready, mediaSrc, onReadinessChange]);
 
   return (
-    <article className="projects-transition__project-media-item" data-project-media-item>
+    <article className="projects-transition__project-media-item" data-project-media-item data-project-preview-loading={mediaSrc && !ready ? '' : undefined} aria-busy={!!mediaSrc && !ready} style={project.mediaAspectRatio ? { aspectRatio: project.mediaAspectRatio } : undefined}>
       {mediaSrc ? (
         <video
           ref={videoRef}
           className="projects-transition__project-preview-video projects-transition__project-preview-surface"
-          src={mediaSrc}
+          src={deferredSrc}
+          poster={shouldFetch && project.mediaPosters?.[index] ? projectMediaSource(project.mediaPosters[index]) : undefined}
           muted
           loop
           playsInline
-          preload={isRolled ? 'auto' : 'metadata'}
+          preload={shouldFetch ? 'auto' : 'none'}
           aria-label={`${project.title} project preview ${index + 1}`}
         />
       ) : (
@@ -198,6 +280,7 @@ function ProjectDetails({ project }: { project: Project }) {
         <ul className="projects-transition__project-stack" aria-label={`${project.title} technology stack`}>
           {project.stack.map(item => <li key={item}>{item}</li>)}
         </ul>
+        {project.film ? <ProjectFilm projectId={project.id} title={project.title} film={project.film} /> : null}
       </div>
       <div className="projects-transition__project-detail-block">
         <p className="projects-transition__project-detail-label">NOTES / 一些想法</p>
@@ -209,9 +292,18 @@ function ProjectDetails({ project }: { project: Project }) {
   );
 }
 
-function ProjectMediaGallery({ project }: { project: Project }) {
+function ProjectMediaGallery({ project, onLoadingChange }: { project: Project; onLoadingChange: (loading: boolean) => void }) {
   const mediaRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
+  const shouldLoad = useDeferredPreview(mediaRef);
+  const mediaItems = project.mediaSrcs?.length ? project.mediaSrcs : [undefined];
+  const [readiness, setReadiness] = useState<GalleryReadiness>({ projectId: project.id, items: {}, revealed: false });
+  const reportReadiness = useCallback((index: number, item: PreviewReadiness) => {
+    setReadiness(previous => updateGalleryReadiness(previous, project.id, mediaItems.length, index, item));
+  }, [project.id, mediaItems.length]);
+  useEffect(() => {
+    onLoadingChange(shouldLoad && !(readiness.projectId === project.id && readiness.revealed));
+  }, [readiness, shouldLoad, project.id, mediaItems.length, onLoadingChange]);
 
   useEffect(() => {
     const media = mediaRef.current;
@@ -270,14 +362,12 @@ function ProjectMediaGallery({ project }: { project: Project }) {
     };
   }, [project.id]);
 
-  const mediaItems = project.mediaSrcs?.length ? project.mediaSrcs : [undefined];
-
   return (
     <div ref={mediaRef} className="projects-transition__project-media" data-project-media>
       <div className="projects-transition__project-media-reveal-shell">
         <div ref={railRef} className="projects-transition__project-media-rail" data-project-media-rail>
           {mediaItems.map((mediaSrc, index) => (
-            <ProjectMediaItem project={project} mediaSrc={mediaSrc} index={index} key={`${project.id}-${mediaSrc ?? 'placeholder'}-${index}`} />
+            <ProjectMediaItem project={project} mediaSrc={mediaSrc} index={index} shouldLoad={shouldLoad} onReadinessChange={reportReadiness} key={`${project.id}-${mediaSrc ?? 'placeholder'}-${index}`} />
           ))}
           <a href={project.href} target="_blank" rel="noreferrer" className="projects-transition__project-repository">
             View repository <span aria-hidden="true">↗</span>
@@ -306,6 +396,7 @@ export default function ProjectDirectory() {
   const [hoveredId, setHoveredId] = useState<Project['id'] | null>(null);
   const [pendingId, setPendingId] = useState<Project['id'] | null>(null);
   const [revealingId, setRevealingId] = useState<Project['id'] | null>(null);
+  const [galleryLoading, setGalleryLoading] = useState(false);
   const switchTimeoutRef = useRef<number | undefined>(undefined);
   const revealTimeoutRef = useRef<number | undefined>(undefined);
   const pendingIdRef = useRef<Project['id'] | null>(null);
@@ -369,8 +460,9 @@ export default function ProjectDirectory() {
       data-project-directory
       data-project-switching={pendingProject ? '' : undefined}
       data-project-revealing={revealingProject ? '' : undefined}
+      data-project-media-loading={galleryLoading ? '' : undefined}
       aria-label="Selected projects"
-      aria-busy={loaderProject ? 'true' : undefined}
+      aria-busy={loaderProject || galleryLoading ? 'true' : undefined}
     >
       <h3 className="projects-transition__project-heading" data-project-directory-heading>
         <DecryptedHeading text="SELECTED WORKS" />
@@ -431,8 +523,8 @@ export default function ProjectDirectory() {
       </ul>
 
       <ProjectDetails project={activeProject} key={`details-${activeProject.id}`} />
-      <ProjectMediaGallery project={galleryProject} />
-      {loaderProject ? <ProjectMediaLoader projectTitle={loaderProject.title} /> : null}
+      <ProjectMediaGallery project={galleryProject} onLoadingChange={setGalleryLoading} />
+      {loaderProject || galleryLoading ? <ProjectMediaLoader projectTitle={(loaderProject ?? galleryProject).title} /> : null}
     </section>
   );
 }

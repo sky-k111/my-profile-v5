@@ -1,4 +1,5 @@
 node_modules/
+.netlify/
 dist/
 .playwright-cli/
 .superpowers/
@@ -11,4 +12,5 @@ tmp/imagegen/
 !racing-suit-cutout.png
 !public/racing-suit-official-v2.png
 !public/ai-brands/*.png
+!public/yikai-logo.png
 *.log

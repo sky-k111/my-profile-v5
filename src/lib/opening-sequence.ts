@@ -25,33 +25,6 @@ const smoothstep = (start: number, end: number, value: number) => {
   return progress * progress * (3 - 2 * progress);
 };
 
-const LOAD_STOPS = [
-  [0, 0],
-  [420, 0.08],
-  [850, 0.19],
-  [1_350, 0.36],
-  [1_850, 0.54],
-  [2_300, 0.72],
-  [2_680, 0.87],
-  [2_980, 0.96],
-  [3_250, 1],
-] as const;
-
-export function resolveOpeningProgress(elapsedMs: number) {
-  if (elapsedMs <= LOAD_STOPS[0][0]) return 0;
-
-  for (let index = 1; index < LOAD_STOPS.length; index += 1) {
-    const [endTime, endValue] = LOAD_STOPS[index];
-    const [startTime, startValue] = LOAD_STOPS[index - 1];
-    if (elapsedMs <= endTime) {
-      const progress = smoothstep(startTime, endTime, elapsedMs);
-      return startValue + (endValue - startValue) * progress;
-    }
-  }
-
-  return 1;
-}
-
 function flicker(progress: number, elapsedMs: number, index: number) {
   const pulse = Math.sin(elapsedMs * 0.047 + index * 2.31);
   const gate = pulse > 0.12 ? 1 : 0.16;
@@ -80,8 +53,8 @@ export function resolveOpeningGlyphOpacity(elapsedMs: number, index: number) {
     : 0;
 }
 
-export function resolveOpeningFrame(elapsedMs: number): OpeningFrame {
-  const progress = resolveOpeningProgress(elapsedMs);
+export function resolveOpeningFrame(elapsedMs: number, loadedProgress = 0): OpeningFrame {
+  const progress = clamp01(loadedProgress);
   const counterExit = smoothstep(4_420, 5_160, elapsedMs);
   const markReveal = smoothstep(380, 1_220, elapsedMs);
   const markExit = smoothstep(5_500, 5_950, elapsedMs);
@@ -90,7 +63,7 @@ export function resolveOpeningFrame(elapsedMs: number): OpeningFrame {
   const curtain = smoothstep(6_000, 7_050, elapsedMs);
 
   return {
-    counter: Math.round(progress * 100),
+    counter: Math.floor(progress * 100),
     progress,
     counterEntrance: smoothstep(120, 820, elapsedMs),
     counterOpacity: smoothstep(120, 720, elapsedMs) * (1 - counterExit),

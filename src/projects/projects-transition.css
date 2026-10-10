@@ -100,10 +100,13 @@
 .projects-transition__project-preview-placeholder span, .projects-transition__project-preview-placeholder small { font-size: clamp(.64rem, .76vw, .82rem); font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
 .projects-transition__project-preview-placeholder strong { font-size: clamp(1.6rem, 3vw, 3.8rem); line-height: .9; letter-spacing: -.08em; }
 .projects-transition__project-preview-glitch { position: absolute; z-index: 2; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; will-change: opacity; }
+.projects-transition__project-media-item[data-project-preview-loading] > .projects-transition__project-preview-surface,
+.projects-transition__project-media-item[data-project-preview-loading] > .projects-transition__project-preview-glitch { visibility: hidden; }
 .projects-transition__project-directory[data-project-switching] .projects-transition__project-media { opacity: 0 !important; visibility: hidden !important; }
+.projects-transition__project-directory[data-project-media-loading] .projects-transition__project-media { opacity: 0 !important; visibility: hidden !important; }
 .projects-transition__project-directory[data-project-revealing] .projects-transition__project-media-reveal-shell { animation: projects-media-switch-reveal 520ms cubic-bezier(.2, .72, .22, 1) both; }
 .projects-transition__project-loader { position: absolute; z-index: 12; top: clamp(16px, 2.4vh, 34px); right: clamp(40px, 5vw, 96px); display: grid; place-content: center; width: min(41vw, 840px); aspect-ratio: 16 / 10; color: var(--transition-ink); font-family: 'Noto Sans SC Variable', sans-serif; pointer-events: none; }
-.projects-transition__project-directory[data-project-revealing] .projects-transition__project-loader { animation: projects-loader-exit 280ms ease-out both; }
+.projects-transition__project-directory[data-project-revealing]:not([data-project-media-loading]) .projects-transition__project-loader { animation: projects-loader-exit 280ms ease-out both; }
 .projects-transition__project-loader-marquee {
   --color-1: #000;
   --size: .7px;
@@ -140,6 +143,8 @@
   .projects-transition__project-details { grid-template-columns: 1fr; gap: 24px; }
   .projects-transition__project-media { position: relative; top: auto; right: auto; bottom: auto; width: 100%; overflow: visible; transform: none !important; opacity: 1 !important; visibility: visible !important; }
   .projects-transition__project-media-rail { gap: 24px; padding-bottom: 0; transform: none !important; }
+  .projects-transition__project-media { grid-area: 5 / 1; }
+  .projects-transition__project-loader { position: relative; top: auto; right: auto; width: 100%; grid-area: 5 / 1; align-self: start; }
   .projects-transition__project-repository { position: relative; right: auto; bottom: auto; display: inline-block; margin-top: 16px; }
   .projects-transition__project-preview-glitch { display: none; }
   .projects-transition__index, .projects-transition__statement, .projects-transition__next, .projects-transition__footer { position: relative; top: auto; right: auto; bottom: auto; left: auto; width: auto; margin-top: 28px; }
@@ -164,7 +169,8 @@
   .projects-transition__project-media { position: relative; top: auto; right: auto; bottom: auto; width: min(100%, 720px); overflow: visible; transform: none !important; opacity: 1 !important; visibility: visible !important; }
   .projects-transition__project-media-rail { transform: none !important; }
   .projects-transition__project-preview-glitch { display: none; }
-  .projects-transition__project-loader { position: fixed; inset: 0; width: auto; aspect-ratio: auto; }
+  .projects-transition__project-media { grid-area: 5 / 1; }
+  .projects-transition__project-loader { position: relative; inset: auto; width: min(100%, 720px); grid-area: 5 / 1; align-self: start; }
   .projects-transition__project-details { animation: none; }
   .projects-transition__project-loader *, .projects-transition__project-loader *::before, .projects-transition__project-loader *::after { animation-duration: 8s !important; }
   .projects-transition__project-loader-marquee { color: #000; text-shadow: none; animation: none !important; }

@@ -7,25 +7,29 @@ import SiteNav from './components/SiteNav';
 import ContactSection from './contact/ContactSection';
 import ContactTab from './contact/ContactTab';
 import { SITE_NAV_ITEMS } from './lib/navigation';
+import { hasCompletedVisit } from './lib/startup-visit';
+import startupCacheKey from 'virtual:startup-cache-key';
 import ProjectsTransition from './projects/ProjectsTransition';
 
 export default function App() {
-  const [openingComplete, setOpeningComplete] = useState(false);
-  const [heroEffectsPrepared, setHeroEffectsPrepared] = useState(false);
+  const previousVisitReady = hasCompletedVisit(window.localStorage, startupCacheKey);
+  const [openingComplete, setOpeningComplete] = useState(previousVisitReady);
+  const [heroEffectsPrepared, setHeroEffectsPrepared] = useState(previousVisitReady);
 
   const prepareHeroEffects = useCallback(() => setHeroEffectsPrepared(true), []);
   const completeOpening = useCallback(() => {
     setOpeningComplete(true);
-
-    if (document.documentElement.dataset.portfolioRefreshReset === 'home') {
-      window.history.scrollRestoration = 'auto';
-      delete document.documentElement.dataset.portfolioRefreshReset;
-    }
   }, []);
 
   useLayoutEffect(() => {
     document.documentElement.removeAttribute('data-portfolio-booting');
   }, []);
+
+  useLayoutEffect(() => {
+    if (!openingComplete || document.documentElement.dataset.portfolioRefreshReset !== 'home') return;
+    window.history.scrollRestoration = 'auto';
+    delete document.documentElement.dataset.portfolioRefreshReset;
+  }, [openingComplete]);
 
   return (
     <>
@@ -43,7 +47,7 @@ export default function App() {
           <Hero active={openingComplete} effectsActive={openingComplete || heroEffectsPrepared} />
         </div>
         <AboutSection />
-        <ProjectsTransition />
+        {heroEffectsPrepared && <ProjectsTransition />}
         <ContactSection />
       </main>
     </>

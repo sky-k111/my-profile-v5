@@ -352,7 +352,8 @@ test('Pending project media preloads behind the loader and crossfades without re
   assert.match(directory, /const galleryProject = pendingProject \?\? activeProject/);
   assert.match(directory, /data-project-revealing/);
   assert.match(directory, /projects-transition__project-media-reveal-shell/);
-  assert.match(directory, /preload=\{isRolled \? 'auto' : 'metadata'\}/);
+  assert.match(directory, /src=\{deferredSrc\}/);
+  assert.match(directory, /preload=\{shouldFetch \? 'auto' : 'none'\}/);
   assert.match(styles, /@keyframes projects-media-switch-reveal/);
   assert.match(styles, /data-project-revealing.*projects-transition__project-loader/s);
 });
@@ -506,6 +507,13 @@ test('Media preserves a zero-valued scroll position so its curled entrance is vi
   assert.match(glitch, /const storedRoll = media\?\.style\.getPropertyValue\('--project-media-roll'\)/);
   assert.match(glitch, /storedRoll === '' \? 1 : Number\(storedRoll\)/);
   assert.doesNotMatch(glitch, /Number\(media\?\.style\.getPropertyValue\('--project-media-roll'\)\) \|\| 1/);
+});
+
+test('Loading and project switches preserve the gallery container owned by the scroll timeline', async () => {
+  const directory = await readFile(new URL('../src/projects/ProjectDirectory.tsx', import.meta.url), 'utf8');
+  const gallery = directory.match(/<ProjectMediaGallery\b[^>]*\/>/)?.[0] ?? '';
+  assert.ok(gallery);
+  assert.doesNotMatch(gallery, /\bkey=/);
 });
 
 test('The live source stays hidden until the curled canvas becomes completely flat', async () => {
