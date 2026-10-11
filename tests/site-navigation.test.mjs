@@ -34,7 +34,8 @@ test('section URLs preserve non-Hero refresh destinations without adding history
   assert.match(nav, /deepLinkRestoreReady/);
   assert.match(nav, /if \(!deepLinkRestoreReady\) return/);
   assert.match(nav, /initialSectionId && !deepLinkRestoreReady/);
-  assert.match(nav, /initialSectionId === 'projects'[\s\S]*site-section-navigation[\s\S]*scrollIntoView/);
+  assert.match(nav, /initialSectionId === 'projects' && dispatchSectionNavigation\(initialSectionId\)/);
+  assert.match(nav, /if \(!projectsEntryHandled\) section\.scrollIntoView/);
   assert.match(nav, /updateActiveSection\(false\)/);
   assert.match(nav, /distance <= closest\.distance/);
   assert.match(nav, /syncSectionUrl\(id\)/);
@@ -52,7 +53,8 @@ test('section navigation keeps About scroll-driven while Projects retain their o
   const projectsMotion = await readFile(new URL('../src/projects/useProjectsTransitionMotion.ts', import.meta.url), 'utf8');
   const projectsCss = await readFile(new URL('../src/projects/projects-transition.css', import.meta.url), 'utf8');
 
-  assert.match(nav, /new CustomEvent\('site-section-navigation', \{ detail: \{ id \} \}\)/);
+  assert.match(nav, /new CustomEvent\('site-section-navigation', \{ detail: \{ id \}, cancelable: true \}\)/);
+  assert.match(nav, /if \(!projectsEntryHandled\) \{\s*window\.scrollTo/);
   // About's opening portrait is owned only by its scrubbed ScrollTrigger.
   // Navigation may position the page but never directly plays or resets it.
   assert.doesNotMatch(aboutMotion, /addEventListener\('site-section-navigation'/);
@@ -64,9 +66,13 @@ test('section navigation keeps About scroll-driven while Projects retain their o
   assert.match(projectsMotion, /trigger\?\.enable/);
   assert.match(projectsMotion, /gsap\.to\(timeline/);
   assert.match(projectsMotion, /data-transition-nav-entering/);
-  assert.match(nav, /if \(id === 'projects'\) \{\s*window\.dispatchEvent/);
+  assert.match(nav, /id === 'projects' && dispatchSectionNavigation\(id\)/);
   assert.match(nav, /forcedActiveRef/);
   assert.match(projectsMotion, /site-section-navigation-complete/);
+  const projectsEntry = projectsMotion.split('const replayProjectsEntry =')[1].split("window.addEventListener('site-section-navigation'")[0];
+  assert.match(projectsEntry, /event\.preventDefault\(\)/);
+  assert.equal(projectsEntry.match(/window\.scrollTo/g)?.length, 1, 'Projects positions the sticky stage only once');
+  assert.ok(projectsEntry.indexOf('window.scrollTo') < projectsEntry.indexOf('navigationTween = gsap.to'));
   assert.match(projectsCss, /data-transition-nav-entering[^}]*background:\s*var\(--transition-paper\)/);
   assert.match(projectsCss, /data-transition-nav-entering[^}]*\.projects-transition__veil[^}]*opacity:\s*1/);
 });

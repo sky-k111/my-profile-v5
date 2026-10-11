@@ -22,6 +22,12 @@ function syncSectionUrl(id: string) {
   window.history.replaceState(window.history.state, '', nextUrl);
 }
 
+function dispatchSectionNavigation(id: string): boolean {
+  const event = new CustomEvent('site-section-navigation', { detail: { id }, cancelable: true });
+  window.dispatchEvent(event);
+  return event.defaultPrevented;
+}
+
 export default function SiteNav({ items, deepLinkRestoreReady }: SiteNavProps) {
   const initialSectionIdRef = useRef(resolveInitialSectionId(window.location.hash, items));
   const [activeId, setActiveId] = useState(initialSectionIdRef.current ?? items[0]?.id ?? '');
@@ -48,18 +54,11 @@ export default function SiteNav({ items, deepLinkRestoreReady }: SiteNavProps) {
     // Projects overlaps About by one viewport. Arm its paper stage before the
     // opening overlay is removed so a deep-link refresh never exposes the red
     // handoff frame on its own.
-    if (initialSectionId === 'projects') {
-      window.dispatchEvent(new CustomEvent('site-section-navigation', {
-        detail: { id: initialSectionId },
-      }));
-    }
-
-    section.scrollIntoView({ block: 'start', behavior: 'auto' });
+    const projectsEntryHandled = initialSectionId === 'projects' && dispatchSectionNavigation(initialSectionId);
+    if (!projectsEntryHandled) section.scrollIntoView({ block: 'start', behavior: 'auto' });
 
     if (initialSectionId !== 'projects') {
-      window.dispatchEvent(new CustomEvent('site-section-navigation', {
-        detail: { id: initialSectionId },
-      }));
+      dispatchSectionNavigation(initialSectionId);
     }
 
     initialSectionIdRef.current = null;
@@ -219,17 +218,17 @@ export default function SiteNav({ items, deepLinkRestoreReady }: SiteNavProps) {
       : false;
 
     // Let Projects cover the completed About frame before this synchronous jump.
-    if (id === 'projects') {
-      window.dispatchEvent(new CustomEvent('site-section-navigation', { detail: { id } }));
+    const projectsEntryHandled = id === 'projects' && dispatchSectionNavigation(id);
+
+    if (!projectsEntryHandled) {
+      window.scrollTo({
+        top: targetTop,
+        behavior: shouldReverseAboutExit ? 'smooth' : id === 'about' || id === 'projects' ? 'auto' : behavior,
+      });
     }
 
-    window.scrollTo({
-      top: targetTop,
-      behavior: shouldReverseAboutExit ? 'smooth' : id === 'about' || id === 'projects' ? 'auto' : behavior,
-    });
-
     if (id !== 'projects') {
-      window.dispatchEvent(new CustomEvent('site-section-navigation', { detail: { id } }));
+      dispatchSectionNavigation(id);
 
       const releaseActiveLock = () => {
         if (forcedActiveRef.current !== id) return;

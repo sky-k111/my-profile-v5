@@ -231,6 +231,7 @@ export function useProjectsTransitionMotion(rootRef: RefObject<HTMLElement | nul
             return;
           }
 
+          event.preventDefault();
           navigationTween?.kill();
           root.setAttribute('data-transition-nav-entering', '');
           transitionState.progress = 0;
@@ -244,16 +245,21 @@ export function useProjectsTransitionMotion(rootRef: RefObject<HTMLElement | nul
           syncProjectMediaRoll();
           syncProjectMediaGallery();
 
+          // Position the sticky stage once, before playing its entrance.
+          // A second scroll jump at tween completion briefly exposed the
+          // overlapping About and Projects backgrounds.
+          const targetTime = resolveProjectsNavigationTimelineTime(id);
+          const scrollRange = Math.max(0, root.offsetHeight - window.innerHeight);
+          const finalScrollTop = root.offsetTop + scrollRange * (targetTime / timeline.duration());
+          window.scrollTo({ top: finalScrollTop, behavior: 'auto' });
+
           navigationTween = gsap.to(timeline, {
-            time: resolveProjectsNavigationTimelineTime(id),
+            time: targetTime,
             duration: 1.72,
             ease: 'power3.inOut',
             overwrite: true,
             onUpdate: syncTransitionState,
             onComplete: () => {
-              const scrollRange = Math.max(0, root.offsetHeight - window.innerHeight);
-              const finalScrollTop = root.offsetTop + scrollRange * timeline.progress();
-              window.scrollTo({ top: finalScrollTop, behavior: 'auto' });
               root.removeAttribute('data-transition-nav-entering');
               trigger?.enable(false, false);
               trigger?.update();
