@@ -7,12 +7,10 @@ import {
   resolveOpeningGlyphOpacity,
 } from '@/lib/opening-sequence';
 import { prepareStartupResources, startupProgress, type StartupProgress } from '@/lib/startup-resources';
-import startupCacheKey from 'virtual:startup-cache-key';
 import PersonalLogo from './PersonalLogo';
 import './OpeningSequence.css';
 
 type OpeningSequenceProps = {
-  warmStart: boolean;
   onComplete: () => void;
   onPrepareHeroEffects: () => void;
 };
@@ -47,8 +45,8 @@ function GlyphShape({ letter }: { letter: string }) {
   }
 }
 
-export default function OpeningSequence({ warmStart, onComplete, onPrepareHeroEffects }: OpeningSequenceProps) {
-  const progressRef = useRef<StartupProgress>({ loaded: warmStart ? 1 : 0, total: warmStart ? 1 : 0, ready: warmStart, error: null });
+export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: OpeningSequenceProps) {
+  const progressRef = useRef<StartupProgress>({ loaded: 0, total: 0, ready: false, error: null });
   const [loadError, setLoadError] = useState<string | null>(null);
   const statusRef = useRef<HTMLParagraphElement | null>(null);
   const loadResources = useCallback(() => {
@@ -56,11 +54,11 @@ export default function OpeningSequence({ warmStart, onComplete, onPrepareHeroEf
     void prepareStartupResources((state) => {
       progressRef.current = state;
       setLoadError(state.error);
-    }, startupCacheKey).catch(() => { /* The loading screen retains the error and offers retry. */ });
+    }).catch(() => { /* The loading screen retains the error and offers retry. */ });
   }, []);
   useEffect(() => {
-    if (!warmStart) loadResources();
-  }, [loadResources, warmStart]);
+    loadResources();
+  }, [loadResources]);
   const completedRef = useRef(false);
   const heroEffectsPreparedRef = useRef(false);
   const rootRef = useRef<HTMLElement | null>(null);
@@ -87,11 +85,11 @@ export default function OpeningSequence({ warmStart, onComplete, onPrepareHeroEf
       if (state.ready && readyAt === null) {
         readyAt = now;
       }
-      // A ready cache plays the full introduction. A slow first visit pauses
-      // at the 3.6-second identity frame until every resource is available.
+      // Cached and network resources both have to be prepared before the
+      // introduction leaves its identity frame.
       const elapsed = resolveOpeningElapsed(now - startedAt, readyAt === null ? null : readyAt - startedAt);
       const visualTime = reducedMotion ? 3600 : elapsed;
-      rootRef.current?.toggleAttribute('data-waiting', !state.error && !document.hidden && !reducedMotion && elapsed >= 1600 && elapsed < 3600 && (warmStart || !state.ready));
+      rootRef.current?.toggleAttribute('data-waiting', !state.error && !document.hidden && !reducedMotion && elapsed >= 1600 && elapsed < 3600 && !state.ready);
       const frame = resolveOpeningFrame(visualTime, startupProgress(state.loaded, state.total, state.ready));
       if (statusRef.current) {
         statusRef.current.textContent = state.ready ? 'READY' : state.error ? '' :

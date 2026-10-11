@@ -165,22 +165,6 @@ const PROJECTS: Project[] = [
   },
 ];
 
-function useDeferredPreview(mediaRef: RefObject<HTMLElement | null>) {
-  const [shouldLoad, setShouldLoad] = useState(false);
-  useEffect(() => {
-    const media = mediaRef.current;
-    if (!media) return;
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      setShouldLoad(true);
-      observer.disconnect();
-    }, { rootMargin: '1200px 0px' });
-    observer.observe(media.closest('.projects-transition') ?? media);
-    return () => observer.disconnect();
-  }, [mediaRef]);
-  return shouldLoad;
-}
-
 function useVisibleVideo(videoRef: RefObject<HTMLVideoElement | null>, mediaSrc: string | undefined, ready: boolean) {
   useEffect(() => {
     const video = videoRef.current;
@@ -209,19 +193,17 @@ function useVisibleVideo(videoRef: RefObject<HTMLVideoElement | null>, mediaSrc:
   }, [mediaSrc, videoRef, ready]);
 }
 
-function ProjectMediaItem({ project, mediaSrc, index, shouldLoad, onReadinessChange }: {
+function ProjectMediaItem({ project, mediaSrc, index, onReadinessChange }: {
   project: Project;
   mediaSrc?: string;
   index: number;
-  shouldLoad: boolean;
   onReadinessChange: (index: number, readiness: PreviewReadiness) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const isRolled = usesProjectMediaRoll(index);
-  const shouldFetch = shouldLoad;
-  const deferredSrc = shouldFetch && mediaSrc ? projectMediaSource(mediaSrc) : undefined;
-  const ready = usePreviewReadiness(videoRef, deferredSrc);
-  useVisibleVideo(videoRef, deferredSrc, ready);
+  const preparedSrc = mediaSrc ? projectMediaSource(mediaSrc) : undefined;
+  const ready = usePreviewReadiness(videoRef, preparedSrc);
+  useVisibleVideo(videoRef, preparedSrc, ready);
   useEffect(() => {
     onReadinessChange(index, { ready: !mediaSrc || ready });
   }, [index, ready, mediaSrc, onReadinessChange]);
@@ -232,12 +214,12 @@ function ProjectMediaItem({ project, mediaSrc, index, shouldLoad, onReadinessCha
         <video
           ref={videoRef}
           className="projects-transition__project-preview-video projects-transition__project-preview-surface"
-          src={deferredSrc}
-          poster={shouldFetch && project.mediaPosters?.[index] ? projectMediaSource(project.mediaPosters[index]) : undefined}
+          src={preparedSrc}
+          poster={project.mediaPosters?.[index] ? projectMediaSource(project.mediaPosters[index]) : undefined}
           muted
           loop
           playsInline
-          preload={shouldFetch ? 'auto' : 'none'}
+          preload="auto"
           aria-label={`${project.title} project preview ${index + 1}`}
         />
       ) : (
@@ -295,15 +277,14 @@ function ProjectDetails({ project }: { project: Project }) {
 function ProjectMediaGallery({ project, onLoadingChange }: { project: Project; onLoadingChange: (loading: boolean) => void }) {
   const mediaRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLDivElement>(null);
-  const shouldLoad = useDeferredPreview(mediaRef);
   const mediaItems = project.mediaSrcs?.length ? project.mediaSrcs : [undefined];
   const [readiness, setReadiness] = useState<GalleryReadiness>({ projectId: project.id, items: {}, revealed: false });
   const reportReadiness = useCallback((index: number, item: PreviewReadiness) => {
     setReadiness(previous => updateGalleryReadiness(previous, project.id, mediaItems.length, index, item));
   }, [project.id, mediaItems.length]);
   useEffect(() => {
-    onLoadingChange(shouldLoad && !(readiness.projectId === project.id && readiness.revealed));
-  }, [readiness, shouldLoad, project.id, mediaItems.length, onLoadingChange]);
+    onLoadingChange(!(readiness.projectId === project.id && readiness.revealed));
+  }, [readiness, project.id, onLoadingChange]);
 
   useEffect(() => {
     const media = mediaRef.current;
@@ -367,7 +348,7 @@ function ProjectMediaGallery({ project, onLoadingChange }: { project: Project; o
       <div className="projects-transition__project-media-reveal-shell">
         <div ref={railRef} className="projects-transition__project-media-rail" data-project-media-rail>
           {mediaItems.map((mediaSrc, index) => (
-            <ProjectMediaItem project={project} mediaSrc={mediaSrc} index={index} shouldLoad={shouldLoad} onReadinessChange={reportReadiness} key={`${project.id}-${mediaSrc ?? 'placeholder'}-${index}`} />
+            <ProjectMediaItem project={project} mediaSrc={mediaSrc} index={index} onReadinessChange={reportReadiness} key={`${project.id}-${mediaSrc ?? 'placeholder'}-${index}`} />
           ))}
           <a href={project.href} target="_blank" rel="noreferrer" className="projects-transition__project-repository">
             View repository <span aria-hidden="true">↗</span>

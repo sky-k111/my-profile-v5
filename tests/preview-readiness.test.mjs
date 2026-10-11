@@ -1,18 +1,25 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { hasPreviewBuffer, updateGalleryReadiness } from '../src/lib/preview-readiness.ts';
+import { hasPreviewBuffer, hasPreparedPreviewFrame, updateGalleryReadiness } from '../src/lib/preview-readiness.ts';
 
 const prepared = { ready: true, required: true, visible: true };
 const waiting = { ready: false, required: true, visible: true };
 const deferred = { ready: false, required: false, visible: false };
 
-test('a short preview waits for the whole loop rather than flashing its first frame', () => {
+test('an ordinary network preview waits for the whole loop', () => {
   assert.equal(hasPreviewBuffer(3.53, .2), false);
   assert.equal(hasPreviewBuffer(3.53, 2), false);
   assert.equal(hasPreviewBuffer(3.53, 3.53), true);
   assert.equal(hasPreviewBuffer(27.23, .2), false);
   assert.equal(hasPreviewBuffer(27.23, 8), false);
   assert.equal(hasPreviewBuffer(NaN, 8), false);
+});
+
+test('a fully downloaded Blob preview needs a decoded first frame, not a full buffered timeline', () => {
+  assert.equal(hasPreparedPreviewFrame('blob:https://example.test/video', 1, 8, 0), false);
+  assert.equal(hasPreparedPreviewFrame('blob:https://example.test/video', 2, 8, 0), true);
+  assert.equal(hasPreparedPreviewFrame('/projects/video.mp4', 2, 8, 0), false);
+  assert.equal(hasPreparedPreviewFrame('/projects/video.mp4', 2, 8, 8), true);
 });
 
 test('the column opens once its all previews are prepared including those below the viewport', () => {

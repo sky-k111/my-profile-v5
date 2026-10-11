@@ -345,15 +345,16 @@ test('Project changes use the supplied marquee loader and commit after the fixed
   assert.doesNotMatch(loader, /LineWobble/);
 });
 
-test('Pending project media preloads behind the loader and crossfades without remounting', async () => {
+test('Current project media prepares as the gallery mounts and crossfades without remounting', async () => {
   const directory = await readFile(new URL('../src/projects/ProjectDirectory.tsx', import.meta.url), 'utf8');
   const styles = await readFile(new URL('../src/projects/projects-transition.css', import.meta.url), 'utf8');
 
   assert.match(directory, /const galleryProject = pendingProject \?\? activeProject/);
   assert.match(directory, /data-project-revealing/);
   assert.match(directory, /projects-transition__project-media-reveal-shell/);
-  assert.match(directory, /src=\{deferredSrc\}/);
-  assert.match(directory, /preload=\{shouldFetch \? 'auto' : 'none'\}/);
+  assert.match(directory, /src=\{preparedSrc\}/);
+  assert.match(directory, /preload="auto"/);
+  assert.doesNotMatch(directory, /useDeferredPreview/);
   assert.match(styles, /@keyframes projects-media-switch-reveal/);
   assert.match(styles, /data-project-revealing.*projects-transition__project-loader/s);
 });

@@ -27,15 +27,17 @@ test('startup manifest counts nested fonts, images, chunks, and entire films', a
 });
 
 test('reload reuses complete cached films and removes incomplete cached responses for retry', async () => {
-  const originals = { fetch: globalThis.fetch, window: globalThis.window, caches: globalThis.caches };
+  const originals = { fetch: globalThis.fetch, window: globalThis.window, caches: globalThis.caches, location: globalThis.location };
   const entries = new Map([
     ['/cached-film.mp4?portfolio-revision=good', new Response('abc')],
     ['/broken-film.mp4?portfolio-revision=bad', new Response('a')],
   ]);
   const requests = [];
   globalThis.window = { setTimeout, clearTimeout };
+  globalThis.location = { origin: 'https://example.test' };
   globalThis.caches = { open: async () => ({
     match: async key => entries.get(key)?.clone(),
+    keys: async () => [...entries.keys()].map(key => ({ url: new URL(key, globalThis.location.origin).href })),
     delete: async key => entries.delete(key),
     put: async (key, response) => { entries.set(key, response); },
   }) };

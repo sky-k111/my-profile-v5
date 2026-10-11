@@ -5,14 +5,6 @@ import path from 'node:path';
 
 const MODULE_ID = 'virtual:project-media-sources';
 const RESOLVED_ID = `\0${MODULE_ID}`;
-const STARTUP_KEY_ID = 'virtual:startup-cache-key';
-const RESOLVED_STARTUP_KEY_ID = `\0${STARTUP_KEY_ID}`;
-
-export function startupCacheKey(assets) {
-  const revisions = assets.map(({ url, revision }) => [url, revision]);
-  return createHash('sha256').update(JSON.stringify(revisions)).digest('hex').slice(0, 24);
-}
-
 export async function createStartupManifest(directory, prefix = '') {
   const assets = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -63,23 +55,19 @@ export async function publishCachedMedia(outputDirectory, manifest) {
 export default function mediaCachePlugin() {
   let config;
   let manifest = {};
-  let cacheKey = '';
   return {
     name: 'portfolio-media-cache',
     configResolved(resolvedConfig) {
       config = resolvedConfig;
     },
     async buildStart() {
-      cacheKey = startupCacheKey(await createStartupManifest(config.publicDir));
       if (config.command === 'build') manifest = await createMediaManifest(path.join(config.publicDir, 'projects'));
     },
     resolveId(id) {
       if (id === MODULE_ID) return RESOLVED_ID;
-      if (id === STARTUP_KEY_ID) return RESOLVED_STARTUP_KEY_ID;
     },
     load(id) {
       if (id === RESOLVED_ID) return `export default ${JSON.stringify(manifest)};`;
-      if (id === RESOLVED_STARTUP_KEY_ID) return `export default ${JSON.stringify(cacheKey)};`;
     },
     configureServer(server) {
       server.middlewares.use('/startup-manifest.json', async (_req, res, next) => {

@@ -1,12 +1,11 @@
 import { prepareImage } from './prepared-images.ts';
-import { recordCompletedVisit } from './startup-visit.ts';
 
 export type StartupAsset = { url: string; bytes: number; revision?: string };
 export type StartupProgress = { loaded: number; total: number; ready: boolean; error: string | null };
 
 const videoSources = new Map<string, string>();
 const completed = new Set<string>();
-let pending: Promise<'cached' | 'loaded'> | undefined;
+let pending: Promise<'loaded'> | undefined;
 
 export function preparedMediaSource(url: string): string {
   return videoSources.get(url) ?? url;
@@ -17,7 +16,7 @@ export function startupProgress(loaded: number, total: number, ready: boolean): 
 }
 
 /** Keep complete video blobs alive for this visit, including modal films and later projects. */
-export function prepareStartupResources(report: (state: StartupProgress) => void, cacheSignature = ''): Promise<'cached' | 'loaded'> {
+export function prepareStartupResources(report: (state: StartupProgress) => void): Promise<'loaded'> {
   if (pending) return pending;
   pending = (async () => {
     let total = 0;
@@ -41,23 +40,8 @@ export function prepareStartupResources(report: (state: StartupProgress) => void
         await import('../components/PixelBlast');
         await document.fonts.load("400 1em 'Cormorant Garamond Variable'", 'YIKAI CHEN');
         await document.fonts.ready;
-        recordCompletedVisit(window.localStorage ?? null, cacheSignature);
         publish(true);
       };
-      // An older visit may have filled Cache Storage before it recorded a
-      // persistent completion marker. Its versioned public assets are enough
-      // to skip a second full read; the current JS bundle is already running.
-      if (cache && cacheSignature) {
-        const keys = await cache.keys().catch(() => []);
-        const available = new Set(keys.map(key => key.url));
-        const publicAssets = assets.filter(asset => !asset.url.startsWith('/assets/'));
-        if (publicAssets.length && publicAssets.every(asset =>
-          !!asset.revision && available.has(new URL(cacheKey(asset), location.origin).href))) {
-          await Promise.all(['/portrait.png', '/racing-suit.png'].map(prepareImage));
-          await finish();
-          return 'cached';
-        }
-      }
       for (const asset of assets) if (completed.has(asset.url)) received.set(asset.url, asset.bytes);
       publish();
       let cursor = 0;
@@ -119,7 +103,7 @@ export function prepareStartupResources(report: (state: StartupProgress) => void
         await Promise.all(keys.filter(key => !currentKeys.has(key.url)).map(key => cache.delete(key).catch(() => false)));
       }
       await finish();
-      return 'loaded';
+      return 'loaded' as const;
     } catch (error) {
       publish(false, error instanceof Error && error.name !== 'AbortError' ? error.message : '连接暂时中断，请重试');
       throw error;
