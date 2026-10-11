@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import {
   OPENING_LABEL,
   OPENING_SEQUENCE_DURATION_MS,
+  resolveOpeningElapsed,
   resolveOpeningFrame,
   resolveOpeningGlyphOpacity,
 } from '@/lib/opening-sequence';
@@ -11,6 +12,7 @@ import PersonalLogo from './PersonalLogo';
 import './OpeningSequence.css';
 
 type OpeningSequenceProps = {
+  warmStart: boolean;
   onComplete: () => void;
   onPrepareHeroEffects: () => void;
 };
@@ -45,9 +47,8 @@ function GlyphShape({ letter }: { letter: string }) {
   }
 }
 
-export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: OpeningSequenceProps) {
-  const progressRef = useRef<StartupProgress>({ loaded: 0, total: 0, ready: false, error: null });
-  const restoredFromCacheRef = useRef(false);
+export default function OpeningSequence({ warmStart, onComplete, onPrepareHeroEffects }: OpeningSequenceProps) {
+  const progressRef = useRef<StartupProgress>({ loaded: warmStart ? 1 : 0, total: warmStart ? 1 : 0, ready: warmStart, error: null });
   const [loadError, setLoadError] = useState<string | null>(null);
   const statusRef = useRef<HTMLParagraphElement | null>(null);
   const loadResources = useCallback(() => {
@@ -55,11 +56,11 @@ export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: Op
     void prepareStartupResources((state) => {
       progressRef.current = state;
       setLoadError(state.error);
-    }, startupCacheKey).then(result => {
-      restoredFromCacheRef.current = result === 'cached';
-    }).catch(() => { /* The loading screen retains the error and offers retry. */ });
+    }, startupCacheKey).catch(() => { /* The loading screen retains the error and offers retry. */ });
   }, []);
-  useEffect(loadResources, [loadResources]);
+  useEffect(() => {
+    if (!warmStart) loadResources();
+  }, [loadResources, warmStart]);
   const completedRef = useRef(false);
   const heroEffectsPreparedRef = useRef(false);
   const rootRef = useRef<HTMLElement | null>(null);
@@ -83,22 +84,14 @@ export default function OpeningSequence({ onComplete, onPrepareHeroEffects }: Op
 
     const renderFrame = (now: number) => {
       const state = progressRef.current;
-      if (state.ready && restoredFromCacheRef.current) {
-        onPrepareHeroEffects();
-        finishOpening();
-        return;
-      }
       if (state.ready && readyAt === null) {
         readyAt = now;
-        heroEffectsPreparedRef.current = true;
-        onPrepareHeroEffects();
       }
-      // Hold the fully visible identity until real resources are ready.
-      const elapsed = readyAt === null
-        ? Math.min(now - startedAt, 3600)
-        : Math.min(3600 + now - readyAt, OPENING_SEQUENCE_DURATION_MS);
+      // A ready cache plays the full introduction. A slow first visit pauses
+      // at the 3.6-second identity frame until every resource is available.
+      const elapsed = resolveOpeningElapsed(now - startedAt, readyAt === null ? null : readyAt - startedAt);
       const visualTime = reducedMotion ? 3600 : elapsed;
-      rootRef.current?.toggleAttribute('data-waiting', !state.ready && !state.error && !document.hidden && now - startedAt >= 1600);
+      rootRef.current?.toggleAttribute('data-waiting', !state.error && !document.hidden && !reducedMotion && elapsed >= 1600 && elapsed < 3600 && (warmStart || !state.ready));
       const frame = resolveOpeningFrame(visualTime, startupProgress(state.loaded, state.total, state.ready));
       if (statusRef.current) {
         statusRef.current.textContent = state.ready ? 'READY' : state.error ? '' :

@@ -7,6 +7,14 @@ export const OPENING_GLYPH_REVEAL_ORDER = [0, 5, 1, 7, 3, 8, 2, 6, 4] as const;
 export const OPENING_GLYPH_EXIT_ORDER = [6, 2, 7, 4, 0, 8, 3, 5, 1] as const;
 export const OPENING_C_EXIT_DELAY_MS = 260;
 
+export function resolveOpeningElapsed(sinceStartMs: number, readyAtMs: number | null): number {
+  if (readyAtMs === null) return Math.min(sinceStartMs, 3_600);
+  return Math.min(
+    readyAtMs < 3_600 ? sinceStartMs : 3_600 + sinceStartMs - readyAtMs,
+    OPENING_SEQUENCE_DURATION_MS,
+  );
+}
+
 export type OpeningFrame = {
   counter: number;
   progress: number;

@@ -12,9 +12,9 @@ import startupCacheKey from 'virtual:startup-cache-key';
 import ProjectsTransition from './projects/ProjectsTransition';
 
 export default function App() {
-  const previousVisitReady = hasCompletedVisit(window.localStorage, startupCacheKey);
-  const [openingComplete, setOpeningComplete] = useState(previousVisitReady);
-  const [heroEffectsPrepared, setHeroEffectsPrepared] = useState(previousVisitReady);
+  const [previousVisitReady] = useState(() => hasCompletedVisit(window.localStorage, startupCacheKey));
+  const [openingComplete, setOpeningComplete] = useState(false);
+  const [heroEffectsPrepared, setHeroEffectsPrepared] = useState(false);
 
   const prepareHeroEffects = useCallback(() => setHeroEffectsPrepared(true), []);
   const completeOpening = useCallback(() => {
@@ -35,6 +35,7 @@ export default function App() {
     <>
       {!openingComplete && (
         <OpeningSequence
+          warmStart={previousVisitReady}
           onPrepareHeroEffects={prepareHeroEffects}
           onComplete={completeOpening}
         />

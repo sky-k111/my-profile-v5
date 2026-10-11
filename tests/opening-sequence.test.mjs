@@ -16,6 +16,13 @@ test('the automatic opening plays on every home entry', () => {
   });
 });
 
+test('cached resources replay the full opening while a slow first visit pauses at the identity frame', () => {
+  assert.equal(opening.resolveOpeningElapsed(1_500, 16), 1_500);
+  assert.equal(opening.resolveOpeningElapsed(7_200, 16), 7_200);
+  assert.equal(opening.resolveOpeningElapsed(8_000, null), 3_600);
+  assert.equal(opening.resolveOpeningElapsed(5_000, 4_500), 4_100);
+});
+
 test('the opening yields only for reduced motion', () => {
   assert.deepEqual(opening.resolveOpeningPlayback(true, ''), {
     shouldPlay: false,
@@ -107,6 +114,9 @@ test('the denser identity interface contains no Hero imagery', async () => {
   const microCss = await readFile(new URL('../src/components/HeroMicroChrome.css', import.meta.url), 'utf8');
 
   assert.match(app, /onPrepareHeroEffects=\{prepareHeroEffects\}/);
+  assert.match(app, /warmStart=\{previousVisitReady\}/);
+  assert.match(app, /\[openingComplete, setOpeningComplete\] = useState\(false\)/);
+  assert.match(component, /if \(!warmStart\) loadResources\(\)/);
   assert.match(app, /onComplete=\{completeOpening\}/);
   assert.match(app, /<SiteNav items=\{SITE_NAV_ITEMS\} deepLinkRestoreReady=\{heroEffectsPrepared\}\s*\/>/);
   assert.match(app, /<Hero active=\{openingComplete\} effectsActive=\{openingComplete \|\| heroEffectsPrepared\}\s*\/>/);

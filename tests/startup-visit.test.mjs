@@ -3,7 +3,7 @@ import test from 'node:test';
 import { startupCacheKey } from '../build/media-cache-plugin.mjs';
 import { hasCompletedVisit, recordCompletedVisit } from '../src/lib/startup-visit.ts';
 
-test('a completed visit opens directly on reload until a public asset changes', () => {
+test('a completed visit can replay the opening without loading media until a public asset changes', () => {
   const data = new Map();
   const storage = {
     getItem: key => data.get(key) ?? null,
